@@ -8,14 +8,14 @@
         "groups": ["meta"],
         "priority": 0
     },
-    "internal": {
-        "nice_name": "%pre metadata and photometry",
-        "active": false,
+    "McConnell_Ma": {
+        "nice_name": "%pre McConnell & Ma 2013",
+        "active": true,
         "update": false,
-        "module": "blackholes.tasks.general_data",
-        "function": "do_internal",
-        "repo": "input/sne-internal",
-        "priority": 1
+        "module": "blackholes.tasks.mcconnell_ma",
+        "function": "",
+        "repo": "output/massive",
+        "priority": 10
     },
     "merge_duplicates": {
         "nice_name": "Merging duplicates",
