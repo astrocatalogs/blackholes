@@ -14,8 +14,21 @@ class BlackholeCatalog(Catalog):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
 
         def __init__(self, catalog):
+            print("HELLO")
             super().__init__(catalog)
+            self.catalog.log.warning("self.PATH_BASE = '{}'".format(self.PATH_BASE))
+            self.catalog.log.warning("self.PATH_OUTPUT = '{}'".format(self.PATH_OUTPUT))
+            self.catalog.log.warning("self.REPOS = '{}'".format(self.REPOS))
             return
+
+        def get_repo_output_file_list(self, normal=True, bones=True):
+            output_file_types = ('.json')
+            output_files = []
+            # Walk through the output directories, store all matching files
+            for root, dirs, files in os.walk(self.PATH_OUTPUT):
+                output_files += [os.path.join(root, fil) for fil in files
+                                 if fil.startswith(output_file_types)]
+            return output_files
 
     class SCHEMA(Catalog.SCHEMA):
         pass
