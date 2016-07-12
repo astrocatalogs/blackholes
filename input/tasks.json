@@ -13,7 +13,7 @@
         "active": true,
         "update": false,
         "module": "blackholes.tasks.mcconnell_ma",
-        "function": "",
+        "function": "do_mcconnell_ma",
         "repo": "output/massive",
         "priority": 10
     },
