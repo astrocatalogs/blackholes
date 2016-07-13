@@ -8,7 +8,7 @@
         "groups": ["meta"],
         "priority": 0
     },
-    "McConnell_Ma": {
+    "mcconnell_ma": {
         "nice_name": "%pre McConnell & Ma 2013",
         "active": true,
         "update": false,
