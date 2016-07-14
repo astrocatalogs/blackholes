@@ -24,9 +24,13 @@ class BLACKHOLE(ENTRY):
     # Numeric Types
     MASS = 'mass'
     DISTANCE = 'distance'
-    RAD_INFL = 'radius_influence'
+    # RAD_INFL = 'radius_influence'
     GALAXY_MASS_BULGE = 'galaxy_bulge_mass'
-    GALAXY_VEL_DISP = 'galaxy_vel_disp'
+    GALAXY_VEL_DISP_BULGE = 'galaxy_bulge_vel_disp'
+    GALAXY_LUMINOSITY_BULGE = 'galaxy_bulge_luminosity'
+    GALAXY_RAD_EFF_V = 'galaxy_rad_eff_v-band'
+    GALAXY_RAD_EFF_I = 'galaxy_rad_eff_i-band'
+    GALAXY_RAD_EFF_3p6 = 'galaxy_rad_eff_3.6-micron'
 
     # Boolean Types
     # String Types
