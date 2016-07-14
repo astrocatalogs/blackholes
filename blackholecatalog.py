@@ -23,9 +23,9 @@ class BlackholeCatalog(Catalog):
     def __init__(self, args, log):
         """
         """
-        self.proto = Blackhole
         # Initialize super `astrocats.catalog.catalog.Catalog` object
         super().__init__(args, log)
+        self.proto = Blackhole
         return
 
     def clone_repos(self):
