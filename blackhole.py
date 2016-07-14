@@ -4,7 +4,7 @@ from astrocats.catalog.entry import ENTRY, Entry
 from astrocats.catalog.key import KEY_TYPES, Key, KeyCollection
 
 
-class BLACKHOLE(KeyCollection):
+class BLACKHOLE(ENTRY):
     """KeyCollection for `Blackhole` keys.
 
     Attributes
@@ -48,3 +48,10 @@ class Blackhole(Entry):
             bibcode=self.catalog.OSC_BIBCODE,
             name=self.catalog.OSC_NAME,
             url=self.catalog.OSC_URL, secondary=True)
+
+    @classmethod
+    def get_filename(cls, name):
+        fname = super().get_filename(name)
+        fname = fname.replace(' ', '_')
+        fname = fname.replace('-', '_')
+        return fname
