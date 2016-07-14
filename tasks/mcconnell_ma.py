@@ -382,6 +382,8 @@ def _add_entry_for_data_lines(catalog, lines):
         for rr in refs:
             new_src = catalog.entries[name].add_source(url=rr)
             use_sources.append(new_src)
+    # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
+    use_sources = ",".join(str(src) for src in use_sources)
 
     # Line '14' includes the 'method' of mass determination
     mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
