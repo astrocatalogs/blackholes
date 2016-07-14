@@ -13,6 +13,7 @@ import astropy.constants
 
 from astrocats.catalog.utils import pbar
 from astrocats.catalog.quantity import QUANTITY
+from astrocats.catalog.photometry import PHOTOMETRY
 
 from astrocats.blackholes.blackhole import BLACKHOLE
 
@@ -21,117 +22,6 @@ SOURCE_URL = "http://adsabs.harvard.edu/abs/2013ApJ...764..184M"
 
 PC = ap.constants.pc.cgs.value   # 1 pc in centimeters
 
-'''
-def do_ascii(catalog):
-    """Process ASCII files that were extracted from datatables appearing in
-    published works.
-    """
-    task_str = catalog.get_current_task_str()
-
-    # 2006ApJ...645..841N
-    file_path = os.path.join(
-        catalog.get_current_task_repo(), '2006ApJ...645..841N-table3.csv')
-    tsvin = list(csv.reader(open(file_path, 'r'), delimiter=','))
-    for ri, row in enumerate(pbar(tsvin, task_str)):
-        name = 'SNLS-' + row[0]
-        name = catalog.add_entry(name)
-        source = catalog.entries[name].add_source(
-            bibcode='2006ApJ...645..841N')
-        catalog.entries[name].add_quantity('alias', name, source)
-        catalog.entries[name].add_quantity(
-            'redshift', row[1], source, kind='spectroscopic')
-        astrot = astrotime(float(row[4]) + 2450000., format='jd').datetime
-        date_str = make_date_string(astrot.year, astrot.month, astrot.day)
-        catalog.entries[name].add_quantity('discoverdate', date_str, source)
-    catalog.journal_entries()
-'''
-
-
-'''
-def do_asassn(catalog):
-    task_str = catalog.get_current_task_str()
-    asn_url = 'http://www.astronomy.ohio-state.edu/~assassin/sn_list.html'
-    html = catalog.load_cached_url(asn_url, os.path.join(
-        catalog.get_current_task_repo(), 'ASASSN/sn_list.html'))
-    if not html:
-        return
-    bs = BeautifulSoup(html, 'html5lib')
-    trs = bs.find('table').findAll('tr')
-    for tri, tr in enumerate(pbar(trs, task_str)):
-        name = ''
-        ra = ''
-        dec = ''
-        redshift = ''
-        hostoff = ''
-        claimedtype = ''
-        host = ''
-        atellink = ''
-        typelink = ''
-        if tri == 0:
-            continue
-        tds = tr.findAll('td')
-        for tdi, td in enumerate(tds):
-            if tdi == 1:
-                name = catalog.add_entry(td.text.strip())
-                atellink = td.find('a')
-                if atellink:
-                    atellink = atellink['href']
-                else:
-                    atellink = ''
-            if tdi == 2:
-                discdate = td.text.replace('-', '/')
-            if tdi == 3:
-                ra = td.text
-            if tdi == 4:
-                dec = td.text
-            if tdi == 5:
-                redshift = td.text
-            if tdi == 8:
-                hostoff = td.text
-            if tdi == 9:
-                claimedtype = td.text
-                typelink = td.find('a')
-                if typelink:
-                    typelink = typelink['href']
-                else:
-                    typelink = ''
-            if tdi == 12:
-                host = td.text
-
-        sources = [catalog.entries[name].add_source(
-            url=asn_url, name='ASAS-SN Supernovae')]
-        typesources = sources[:]
-        if atellink:
-            sources.append(
-                (catalog.entries[name]
-                 .add_source(name='ATel ' +
-                             atellink.split('=')[-1], url=atellink)))
-        if typelink:
-            typesources.append(
-                (catalog.entries[name]
-                 .add_source(name='ATel ' +
-                             typelink.split('=')[-1], url=typelink)))
-        sources = ','.join(sources)
-        typesources = ','.join(typesources)
-        catalog.entries[name].add_quantity('alias', name, sources)
-        catalog.entries[name].add_quantity('discoverdate', discdate, sources)
-        catalog.entries[name].add_quantity('ra', ra, sources,
-                                           unit='floatdegrees')
-        catalog.entries[name].add_quantity('dec', dec, sources,
-                                           unit='floatdegrees')
-        catalog.entries[name].add_quantity('redshift', redshift, sources)
-        catalog.entries[name].add_quantity(
-            'hostoffsetang', hostoff, sources, unit='arcseconds')
-        for ct in claimedtype.split('/'):
-            if ct != 'Unk':
-                catalog.entries[name].add_quantity('claimedtype', ct,
-                                                   typesources)
-        if host != 'Uncatalogued':
-            catalog.entries[name].add_quantity('host', host, sources)
-    catalog.journal_entries()
-    return
-
-'''
 
 def do_mcconnell_ma(catalog):
     """
@@ -175,125 +65,6 @@ def do_mcconnell_ma(catalog):
 
         num += 1
 
-
-    print("entries = ", entries)
-
-    return
-
-    # columns = []
-    # # Go over each line in the file
-    # html = html.splitlines()
-    # for num, line in enumerate(html):
-    #     if 'psdg-left' in line:
-    #         print(html[num+1])
-    #     continue
-    #
-    # return
-
-    #
-    #     # Check the first line to make sure things look right (contains updated date).
-    #     if num == 0:
-    #         updated = line.split('This ASCII file was last updated on ')
-    #         if len(updated) != 2 or updated[-1] != 'June 26, 2013.':
-    #             log.error("{} DATA HAS CHANGED!".format(task_name))
-    #             return None
-    #         updated = updated[-1]
-    #
-    #     line = line.strip()
-    #     # Skip the first three lines and any blank lines
-    #     if num < 3 or len(line) == 0:
-    #         continue
-    #
-    #     # Next series of lines are column speciications
-    #     # Store these, stripping off the initial
-    #     if line.startswith('Col.'):
-    #         # Try to parse line appropriately, return `None` on errors
-    #         try:
-    #             col_desc = re.split("Col. [0-9]{0,2}: ", line)[1]
-    #         except Exception as err:
-    #             log.error("{}: Failed to parse line {}: '{}'.".format(task_name, num, line))
-    #             log.error("\t{}".format(str(err)))
-    #             return None
-    #
-    #         columns.append(col_desc)
-    #     # Get actual data from table
-    #     else:
-    #         data = line.split()
-    #         # Make sure all of the lines of data match that of columns, and thus eachother
-    #         if len(data) != len(columns):
-    #             log.error(("{}: Length of columns does not match that of split data."
-    #                       "\nColumns: '{}'\nData: '{}'.").format(task_name, columns, data))
-    #             return None
-    #
-    #         # Add entry for each line of table, into catalog
-    #         bh_name = _add_entry_for_data_line(catalog, data)
-    #         log.debug("{}: added '{}'".format(task_name, bh_name))
-    #
-    # return
-
-
-def do_mcconnell_ma_ascii(catalog):
-    """
-
-    Data is given in tab-deliminted ascii form with 3 lines of header, column specifications,
-    and then a table of data --- with a line for each MBH entry.
-    """
-
-    DATA_URL = "http://blackhole.berkeley.edu/current_ascii.txt"
-
-    log = catalog.log
-    log.debug("do_mcconnell_ma()")
-    task_str = catalog.get_current_task_str()
-    task_name = catalog.current_task.name
-    # Load data from URL or cached copy of it
-    cached_path = os.path.join(
-        catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
-    html = catalog.load_cached_url(DATA_URL, cached_path)
-    if not html:
-        self.log("{} Failed to load data.".format(task_name), level=logging.WARNING)
-        return
-
-    columns = []
-    # Go over each line in the file
-    for num, line in enumerate(html.splitlines()):
-        # Check the first line to make sure things look right (contains updated date).
-        if num == 0:
-            updated = line.split('This ASCII file was last updated on ')
-            if len(updated) != 2 or updated[-1] != 'June 26, 2013.':
-                log.error("{} DATA HAS CHANGED!".format(task_name))
-                return None
-            updated = updated[-1]
-
-        line = line.strip()
-        # Skip the first three lines and any blank lines
-        if num < 3 or len(line) == 0:
-            continue
-
-        # Next series of lines are column speciications
-        # Store these, stripping off the initial
-        if line.startswith('Col.'):
-            # Try to parse line appropriately, return `None` on errors
-            try:
-                col_desc = re.split("Col. [0-9]{0,2}: ", line)[1]
-            except Exception as err:
-                log.error("{}: Failed to parse line {}: '{}'.".format(task_name, num, line))
-                log.error("\t{}".format(str(err)))
-                return None
-
-            columns.append(col_desc)
-        # Get actual data from table
-        else:
-            data = line.split()
-            # Make sure all of the lines of data match that of columns, and thus eachother
-            if len(data) != len(columns):
-                log.error(("{}: Length of columns does not match that of split data."
-                          "\nColumns: '{}'\nData: '{}'.").format(task_name, columns, data))
-                return None
-
-            # Add entry for each line of table, into catalog
-            bh_name = _add_entry_for_data_line(catalog, data)
-            log.debug("{}: added '{}'".format(task_name, bh_name))
-
     return
 
 
@@ -302,22 +73,22 @@ def _add_entry_for_data_lines(catalog, lines):
 
     Columns:
     -------
-    00: Galaxy
-    01: M_BH (+,-) M_sun
-    02: sigma (km/s) -- bulge velocity dispersion
-    03: log(L_V)
-    04: M_V
-    05: log(L_3.6)
-    06: M_3.6
-    07: M_bulge (M_sun)
-    08: R_inf (arcsec)
-    09: R_eff (V-band, arcsec)
-    10: R_eff (i-band, arcsec)
-    11: R_eff (3.6um, arcsec)
-    12: Distance (Mpc)
-    13: Morph
-    14: BH Mass Method
-    15: BH Mass Reference
+x    00: Galaxy
+x    01: M_BH (+,-) M_sun
+x    02: sigma (km/s) -- bulge velocity dispersion
+x    03: log(L_V) -- bulge luminosity [log of solar units]
+-    04: M_V -- v-band luminosity [magnitude] -- skip magnitude
+x    05: log(L_3.6) -- 3.6 micron bulge luminosity
+-    06: M_3.6
+x    07: M_bulge (M_sun)
+-    08: R_inf (arcsec)   -- derived from M/sigma^2 -- skip derived quantities
+x    09: R_eff (V-band, arcsec)
+x    10: R_eff (i-band, arcsec)
+x    11: R_eff (3.6um, arcsec)
+x    12: Distance (Mpc)
+x    13: Morph
+x    14: BH Mass Method
+x    15: BH Mass Reference
 
     Sample Entry:
     ------------
@@ -355,13 +126,17 @@ def _add_entry_for_data_lines(catalog, lines):
         data_name = groups[0]
         alias = groups[1].strip()
     data_name = data_name.strip()
-    # At the end of the table, there is a blank row, return None
+    # If name matches pattern 'IC ####', remove space
+    if re.search('IC [0-9]{4}', data_name) is not None:
+        data_name = data_name.replace('IC ', 'IC')
+    # At the end of the table, there is a blank row, return None in that case
     if not len(data_name):
         return None
     name = catalog.add_entry(data_name)
+
     # Add this source
     source = catalog.entries[name].add_source(url=SOURCE_URL, bibcode=SOURCE_BIBCODE)
-    # Add alias, if one was found
+    # Add alias of name, if one was found
     if alias is not None:
         catalog.entries[name].add_quantity('alias', name, source)
 
@@ -390,104 +165,128 @@ def _add_entry_for_data_lines(catalog, lines):
     quant_kwargs = {QUANTITY.UNIT: 'Msol', QUANTITY.DESC: mass_desc,
                     QUANTITY.ERROR_LOWER: err_lo, QUANTITY.ERROR_UPPER: err_hi}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
+
+    # Add cells with similar data in the same way
+    # -------------------------------------------
+    morph_desc = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
+                  "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
+                  "are core (C), intermediate (I), and power-law (pl).")
+    cell_data = [
+        # Quantity-Key               line-num, unit,        desc
+        [BLACKHOLE.GALAXY_VEL_DISP_BULGE, 2, 'km/s', "Host, bulge velocity dispersion"],
+        [BLACKHOLE.GALAXY_MASS_BULGE, 7, 'Msol', "Mass of the host's bulge"],
+        [BLACKHOLE.GALAXY_RAD_EFF_V, 9, 'arcsec', None],
+        [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec', None],
+        [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec', None],
+        [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
+        [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, morph_desc],
+    ]
+
+    # Bulge Luminosity v-band
+    val, err = _get_value_and_error(lines[3].text, cast=float)
+    if val is not None:
+        photo_kwargs = {
+            PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
+            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
+            PHOTOMETRY.BAND: 'v'
+        }
+        if err is not None:
+            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
+        catalog.entries[name].add_photometry(**photo_kwargs)
+
+    # Bulge Luminosity 3.6micron
+    val, err = _get_value_and_error(lines[5].text, cast=float)
+    if val is not None:
+        photo_kwargs = {
+            PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
+            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
+            PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
+        }
+        if err is not None:
+            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
+        catalog.entries[name].add_photometry(**photo_kwargs)
+
     return name
 
 
-    # Distance [Mpc]
-    quant_kwargs = {QUANTITY.UNIT: 'Mpc'}
-    catalog.entries[name].add_quantity(BLACKHOLE.DISTANCE, data[1], source, **quant_kwargs)
+def _get_value_and_error(line, cast=None):
+    val = None
+    err = None
+
+    line = line.strip()
+    if line == '-' or line == '--':
+        return None, None
+
+    line = [ll.strip() for ll in line.split('±')]
+    if len(line) == 2:
+        val, err = line
+    elif len(line) == 1 and len(line[0]):
+        val = line[0]
+    else:
+        return None, None
+
+    # Cast to certain `type`
+    if cast is not None:
+        if val is not None:
+            val = cast(val)
+        if err is not None:
+            err = cast(err)
+
+    return val, err
 
 
-    # Galaxy velocity dispersion 'sigma', lower and upper 68% bounds [km/s]
-    sigma_desc = "Host velocity dispersion with 68%% confidence bounds."
-    quant_kwargs = {QUANTITY.UNIT: 'km/s', QUANTITY.DESC: sigma_desc,
-                    QUANTITY.ERROR_LOWER: data[7], QUANTITY.ERROR_UPPER: data[8]}
-    catalog.entries[name].add_quantity(BLACKHOLE.GALAXY_VEL_DISP, data[6], source, **quant_kwargs)
+def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None):
+    """Given an input `line`, try to parse a value and error and store to the appropriate entry.
 
-    # Galaxy Luminosity
-    # V-Band ['log(LV/Lsun)']
-    lum_v = data[9]
-    lum_v_err = data[10]
-    # Spitzer [log(L_3.6/Lsun)] -- Spitzer 3.6 um, from Sani et al. 2011
-    lum_36 = data[11]
-    lum_36_err = data[12]
-    # Bulge Mass [Msol]
-    mass_bulge = data[13]
-    # Radius of influence [arcsec]
-    rad_infl = data[14]
-    # Galaxy morphology {(E)lliptical, S0, (S)piral}
-    galaxy_morph = data[15]
-    # Galaxy profile {(P)ower-law, (I)ntermediate, (C)ore, (U)ndetermined, N/A}
-    galaxy_prof = data[16]
-    # Effective radii
-    #    Reff (V-band, arcsec)
-    rad_eff_v = data[17]
-    #    Reff (i-band, arcsec) -- SDSS DR7, from Beifiori et al. 2012
-    rad_eff_i = data[18]
-    #    Reff (3.6 um, arcsec) -- from Sani et al. 2011
-    rad_eff_36 = data[19]
+    Arguments
+    ---------
+    catalog
+    name : str
+        Name of the entry to which to add quantity
+    key : str
+        Name of the quantity itself that is being stored
+    src : str
+        The source alias that this data comes from
+    line : `bs4.element.NavigableString` object
+        From which data is parsed
+    unit : str
+        Unit of measurement for this quantity
+    desc : str
+        Description of this quantity
 
-    # print("galaxy: {}, distance: {}, mass: {}, method: {}".format(galaxy, distance, mass, mass_method))
-    return name
-
-
-def _add_entry_for_data_line(catalog, data):
     """
-    """
-    # Create entry, store data for each MBH
-    # -------------------------------------
-    # Create new entry using Name of the Galaxy
-    data_name = data[0]
-    # Replace Some Names manually
-    if data_name == 'MW':
-        data_name = 'MilkyWay'
-    elif data_name == 'Circ':
-        data_name = 'Circinus'
-    name = catalog.add_entry(data[0])
-    print("Added name: {}".format(name))
-    # Add this source
-    source = catalog.entries[name].add_source(url=SOURCE_URL, bibcode=SOURCE_BIBCODE)
-    print("Added source: {}".format(source))
+    # If the line contains a URL for an additional source, extract that
+    # -----------------------------------------------------------------
+    refs = [rr['href'] for rr in line.contents if isinstance(rr, bs4.element.Tag)]
+    # If references are found, add them to this paper
+    use_sources = [src]
+    if len(refs):
+        for rr in refs:
+            print("{} - {}: found url '{}'.".format(name, key, rr))
+            new_src = catalog.entries[name].add_source(url=rr)
+            use_sources.append(new_src)
+    # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
+    use_sources = ",".join(str(src) for src in use_sources)
 
-    # Distance [Mpc]
-    quant_kwargs = {QUANTITY.UNIT: 'Mpc'}
-    catalog.entries[name].add_quantity(BLACKHOLE.DISTANCE, data[1], source, **quant_kwargs)
+    # Try to get a value and an error from the input line's text
+    # ----------------------------------------------------------
+    val, err = _get_value_and_error(line.text)
+    # If a value is given, add it
+    if val is not None:
+        kwargs = {}
+        # Include units of measure
+        if unit is not None:
+            kwargs[QUANTITY.UNIT] = unit
+        # Include an error (uncertainty) if one was found
+        if err is not None:
+            if desc is not None:
+                desc += " with one-sigma error."
+            kwargs[QUANTITY.ERROR] = err
+        # Include a description if one is given
+        if desc is not None:
+            kwargs[QUANTITY.DESC] = desc
 
-    # BH Mass
-    #    `data[5]` includes the 'method' of mass determination
-    mass_desc = "BH Mass with 68%% confidence bounds.  Method: '{}'".format(data[5])
-    quant_kwargs = {QUANTITY.UNIT: 'Msol', QUANTITY.DESC: mass_desc,
-                    QUANTITY.ERROR_LOWER: data[3], QUANTITY.ERROR_UPPER: data[4]}
-    catalog.entries[name].add_quantity(BLACKHOLE.MASS, data[2], source, **quant_kwargs)
+        # Add quantity with source
+        catalog.entries[name].add_quantity(key, val, use_sources, **kwargs)
 
-    # Galaxy velocity dispersion 'sigma', lower and upper 68% bounds [km/s]
-    sigma_desc = "Host velocity dispersion with 68%% confidence bounds."
-    quant_kwargs = {QUANTITY.UNIT: 'km/s', QUANTITY.DESC: sigma_desc,
-                    QUANTITY.ERROR_LOWER: data[7], QUANTITY.ERROR_UPPER: data[8]}
-    catalog.entries[name].add_quantity(BLACKHOLE.GALAXY_VEL_DISP, data[6], source, **quant_kwargs)
-
-    # Galaxy Luminosity
-    # V-Band ['log(LV/Lsun)']
-    lum_v = data[9]
-    lum_v_err = data[10]
-    # Spitzer [log(L_3.6/Lsun)] -- Spitzer 3.6 um, from Sani et al. 2011
-    lum_36 = data[11]
-    lum_36_err = data[12]
-    # Bulge Mass [Msol]
-    mass_bulge = data[13]
-    # Radius of influence [arcsec]
-    rad_infl = data[14]
-    # Galaxy morphology {(E)lliptical, S0, (S)piral}
-    galaxy_morph = data[15]
-    # Galaxy profile {(P)ower-law, (I)ntermediate, (C)ore, (U)ndetermined, N/A}
-    galaxy_prof = data[16]
-    # Effective radii
-    #    Reff (V-band, arcsec)
-    rad_eff_v = data[17]
-    #    Reff (i-band, arcsec) -- SDSS DR7, from Beifiori et al. 2012
-    rad_eff_i = data[18]
-    #    Reff (3.6 um, arcsec) -- from Sani et al. 2011
-    rad_eff_36 = data[19]
-
-    # print("galaxy: {}, distance: {}, mass: {}, method: {}".format(galaxy, distance, mass, mass_method))
-    return name
+    return
