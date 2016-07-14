@@ -19,6 +19,9 @@ from astrocats.blackholes.blackhole import BLACKHOLE
 
 SOURCE_BIBCODE = "2013ApJ...764..184M"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2013ApJ...764..184M"
+MORPH_DESC = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
+              "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
+              "are core (C), intermediate (I), and power-law (pl).")
 
 PC = ap.constants.pc.cgs.value   # 1 pc in centimeters
 
@@ -73,22 +76,22 @@ def _add_entry_for_data_lines(catalog, lines):
 
     Columns:
     -------
-x    00: Galaxy
-x    01: M_BH (+,-) M_sun
-x    02: sigma (km/s) -- bulge velocity dispersion
-x    03: log(L_V) -- bulge luminosity [log of solar units]
--    04: M_V -- v-band luminosity [magnitude] -- skip magnitude
-x    05: log(L_3.6) -- 3.6 micron bulge luminosity
--    06: M_3.6
-x    07: M_bulge (M_sun)
--    08: R_inf (arcsec)   -- derived from M/sigma^2 -- skip derived quantities
-x    09: R_eff (V-band, arcsec)
-x    10: R_eff (i-band, arcsec)
-x    11: R_eff (3.6um, arcsec)
-x    12: Distance (Mpc)
-x    13: Morph
-x    14: BH Mass Method
-x    15: BH Mass Reference
+    x    00: Galaxy
+    x    01: M_BH (+,-) M_sun
+    x    02: sigma (km/s) -- bulge velocity dispersion
+    x    03: log(L_V) -- bulge luminosity [log of solar units]
+    -    04: M_V -- v-band luminosity [magnitude] -- skip magnitude
+    x    05: log(L_3.6) -- 3.6 micron bulge luminosity
+    -    06: M_3.6
+    x    07: M_bulge (M_sun)
+    -    08: R_inf (arcsec)   -- derived from M/sigma^2 -- skip derived quantities
+    x    09: R_eff (V-band, arcsec)
+    x    10: R_eff (i-band, arcsec)
+    x    11: R_eff (3.6um, arcsec)
+    x    12: Distance (Mpc)
+    x    13: Morph
+    x    14: BH Mass Method
+    x    15: BH Mass Reference
 
     Sample Entry:
     ------------
@@ -168,9 +171,6 @@ x    15: BH Mass Reference
 
     # Add cells with similar data in the same way
     # -------------------------------------------
-    morph_desc = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
-                  "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
-                  "are core (C), intermediate (I), and power-law (pl).")
     cell_data = [
         # Quantity-Key               line-num, unit,        desc
         [BLACKHOLE.GALAXY_VEL_DISP_BULGE, 2, 'km/s', "Host, bulge velocity dispersion"],
@@ -179,7 +179,7 @@ x    15: BH Mass Reference
         [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec', None],
         [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec', None],
         [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
-        [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, morph_desc],
+        [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, MORPH_DESC],
     ]
 
     # Bulge Luminosity v-band
