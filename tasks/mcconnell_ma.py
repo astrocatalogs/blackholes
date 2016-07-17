@@ -165,8 +165,8 @@ def _add_entry_for_data_lines(catalog, lines):
 
     # Line '14' includes the 'method' of mass determination
     mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
-    quant_kwargs = {QUANTITY.UNIT: 'Msol', QUANTITY.DESC: mass_desc,
-                    QUANTITY.ERROR_LOWER: err_lo, QUANTITY.ERROR_UPPER: err_hi}
+    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESC: mass_desc,
+                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_LOWER_VALUE: err_hi}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
 
     # Add cells with similar data in the same way
@@ -181,6 +181,11 @@ def _add_entry_for_data_lines(catalog, lines):
         [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
         [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, MORPH_DESC],
     ]
+    for key, num, unit, desc in cell_data:
+        val, err = _get_value_and_error(lines[num].text)
+        if val is not None:
+            quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESC: desc}
+            catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
 
     # Bulge Luminosity v-band
     val, err = _get_value_and_error(lines[3].text, cast=float)
@@ -276,7 +281,7 @@ def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None)
         kwargs = {}
         # Include units of measure
         if unit is not None:
-            kwargs[QUANTITY.UNIT] = unit
+            kwargs[QUANTITY.U_VALUE] = unit
         # Include an error (uncertainty) if one was found
         if err is not None:
             if desc is not None:
