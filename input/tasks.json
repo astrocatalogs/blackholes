@@ -17,6 +17,15 @@
         "repo": "input/external",
         "priority": 10
     },
+    "agn_bhm_database": {
+        "nice_name": "%pre AGN Black Hole Mass Database",
+        "active": true,
+        "update": false,
+        "module": "blackholes.tasks.agn_bhm_database",
+        "function": "do_agn_bhm_database",
+        "repo": "input/external",
+        "priority": 10
+    },
     "merge_duplicates": {
         "nice_name": "Merging duplicates",
         "active": true,
