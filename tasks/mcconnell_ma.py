@@ -41,7 +41,8 @@ def do_mcconnell_ma(catalog):
         catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
     html = catalog.load_cached_url(DATA_URL, cached_path)
     if not html:
-        self.log("{} Failed to load data from '{}'.".format(task_name, DATA_URL), level=logging.WARNING)
+        self.log("{} Failed to load data from '{}'.".format(
+            task_name, DATA_URL), level=logging.WARNING)
         return
 
     soup = BeautifulSoup(html, 'html5lib')
