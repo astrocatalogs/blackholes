@@ -14,7 +14,7 @@
         "update": false,
         "module": "blackholes.tasks.mcconnell_ma",
         "function": "do_mcconnell_ma",
-        "repo": "output/massive",
+        "repo": "input/external",
         "priority": 10
     },
     "merge_duplicates": {
