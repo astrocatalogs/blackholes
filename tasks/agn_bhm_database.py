@@ -22,8 +22,6 @@ SOURCE_BIBCODE = "2015PASP..127...67B"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2015PASP..127...67B"
 DATA_URL = "http://www.astro.gsu.edu/AGNmass/"
 
-# PC = ap.constants.pc.cgs.value   # 1 pc in centimeters
-
 
 def do_agn_bhm_database(catalog):
     """
