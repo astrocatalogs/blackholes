@@ -50,85 +50,55 @@ def do_agn_bhm_database(catalog):
 
     # Go through each element of the tables
     num = 0
-    print("\n")
-    names = []
+    entries = 0
     while num < num_div_lines:
         div = div_lines[num]
 
         # Get the `varname` -- ID number for each row
+        #    The first element of the `contents` contains an href with the 'varname'
         cell_text = str(div.contents[0])
         groups = re.search('varname=([0-9]*)', cell_text)
         # If no match is found, this is one of the header lines (not an entry line, skip)
         if groups is not None:
             varname = groups.groups()[0]
-            print("\t", varname)
-            names.append(varname)
+            print("\t", varname, "\t", div.text)
 
-        # # Find each row of the table (starts with class='psdg-left')
-        # if ('class' in div.attrs) and ('psdg-left' in div['class']):
-        #     entries += 1
-        #     bh_name = _add_entry_for_data_lines(catalog, div_lines[num:num+interval])
-        #     if bh_name is not None:
-        #         log.debug("{}: added '{}'".format(task_name, bh_name))
-        #         num += interval-1
+            name = _add_entry_for_data_line(catalog, div.text, varname)
+            if name is not None:
+                entries += 1
 
         num += 1
 
-    print(sorted(names, key=int))
 
     return
 
 
-def _add_entry_for_data_lines(catalog, lines):
+def _add_entry_for_data_line(catalog, line, varname):
     """
 
     Columns:
     -------
-    x    00: Galaxy
-    x    01: M_BH (+,-) M_sun
-    x    02: sigma (km/s) -- bulge velocity dispersion
-    x    03: log(L_V) -- bulge luminosity [log of solar units]
-    -    04: M_V -- v-band luminosity [magnitude] -- skip magnitude
-    x    05: log(L_3.6) -- 3.6 micron bulge luminosity
-    -    06: M_3.6
-    x    07: M_bulge (M_sun)
-    -    08: R_inf (arcsec)   -- derived from M/sigma^2 -- skip derived quantities
-    x    09: R_eff (V-band, arcsec)
-    x    10: R_eff (i-band, arcsec)
-    x    11: R_eff (3.6um, arcsec)
-    x    12: Distance (Mpc)
-    x    13: Morph
-    x    14: BH Mass Method
-    x    15: BH Mass Reference
+    [ ] 00 - object name
+    [ ] 01 - mass log(Mbh/Msol)
+    [ ] 02 - RA (hh:mm:ss.s)
+    [ ] 03 - Dec (dd:mm:ss)
+    [ ] 04 - redshift z
+    [ ] 05 - Alternate names (whitespace delimiated strings)
 
     Sample Entry:
     ------------
-    00: <div class="psdg-left">
-            <a href="http://ned.ipac.caltech.edu/.....">A1836-BCG</a> </div>
-    01: <div class="psdg-bh">  3.9 (0.4,0.6) e9</div>
-    02: <div class="psdg-bh">  288 &plusmn 14 </div>
-    03: <div class="psdg-bh"> 11.26 &plusmn 0.06 </div>
-    04: <div class="psdg-right"> -23.35 </div>
-    05: <div class="psdg-bh"> -- </div>
-    06: <div class="psdg-right"> -- </div>
-    07: <div class="psdg-bh">--</div>
-    08: <div class="psdg-right"> 0.27 </div>
-    09: <div class="psdg-right"> -- </div>
-    10: <div class="psdg-right">
-            <a href="http://adsabs.harvard.edu/abs/2012MNRAS.419.2497B" \
-                title="Reference: Beifiori 2012" >17.61</a> </div>
-    11: <div class="psdg-right"> -- </div>
-    12: <div class="psdg-right"> 157.5 </div>
-    13: <div class="psdg-right"> E (C) </div>
-    14: <div class="psdg-right"> gas </div>
-    15: <div class="psdg-right"  style="width: 160px;">
-            <a href="http://adsabs.harvard.edu/abs/2009ApJ...690..537D">Dalla Bonta 2009</a></div>
+    Mrk335 7.230 (+0.042/-0.044) 00:06:19.5 +20:12:10 0.02579 PG0003+199
+    Mrk382 ... 07:55:25.3 +39:11:10 0.03369
 
     """
+    cells = [ll.strip() for ll in line.split()]
+    if not len(cells):
+        return None
+
     # Galaxy/BH Name
     # --------------
     # Remove footnotes
-    data_name = lines[0].text.split('^')[0]
+    data_name = line[0].replace(' ', '_')
     # See if an alias is given in parenthesis e.g. 'N3379 (M105)'
     groups = re.search('(.*)[ ]*\((.*)\)', data_name)
     alias = None
