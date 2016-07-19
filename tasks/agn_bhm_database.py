@@ -25,6 +25,10 @@ DATA_URL = "http://www.astro.gsu.edu/AGNmass/"
 
 def do_agn_bhm_database(catalog):
     """
+
+    Get this line for description:
+    'M<sub>BH</sub> calculated using <i>&lt; f &gt;</i>&thinsp;=&thinsp; 2.8'
+
     """
 
     log = catalog.log
@@ -61,8 +65,6 @@ def do_agn_bhm_database(catalog):
         # If no match is found, this is one of the header lines (not an entry line, skip)
         if groups is not None:
             varname = groups.groups()[0]
-            print("\t", varname, "\t", div.text)
-
             name = _add_entry_for_data_line(catalog, div.text, varname)
             if name is not None:
                 entries += 1
@@ -79,11 +81,11 @@ def _add_entry_for_data_line(catalog, line, varname):
     Columns:
     -------
     [ ] 00 - object name
-    [ ] 01 - mass log(Mbh/Msol)
+    [ ] 01 - mass (+###/-###)   [ log(Mbh/Msol) ]
     [ ] 02 - RA (hh:mm:ss.s)
     [ ] 03 - Dec (dd:mm:ss)
     [ ] 04 - redshift z
-    [ ] 05 - Alternate names (whitespace delimiated strings)
+    [ ] 05 - Alternate names    [whitespace delimiated strings]
 
     Sample Entry:
     ------------
@@ -91,35 +93,50 @@ def _add_entry_for_data_line(catalog, line, varname):
     Mrk382 ... 07:55:25.3 +39:11:10 0.03369
 
     """
-    cells = [ll.strip() for ll in line.split()]
+    cells = [ll.strip() for ll in line.split('  ') if len(ll.strip())]
+    # print(cells, varname)
     if not len(cells):
         return None
 
     # Galaxy/BH Name
     # --------------
-    # Remove footnotes
-    data_name = line[0].replace(' ', '_')
-    # See if an alias is given in parenthesis e.g. 'N3379 (M105)'
-    groups = re.search('(.*)[ ]*\((.*)\)', data_name)
-    alias = None
-    if groups is not None:
-        groups = groups.groups()
-        data_name = groups[0]
-        alias = groups[1].strip()
-    data_name = data_name.strip()
-    # If name matches pattern 'IC ####', remove space
-    if re.search('IC [0-9]{4}', data_name) is not None:
-        data_name = data_name.replace('IC ', 'IC')
-    # At the end of the table, there is a blank row, return None in that case
-    if not len(data_name):
-        return None
-    name = catalog.add_entry(data_name)
-
+    name = cells.pop(0)
+    name = catalog.add_entry(name)
     # Add this source
-    source = catalog.entries[name].add_source(url=SOURCE_URL, bibcode=SOURCE_BIBCODE)
+    source = catalog.entries[name].add_source(
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True)
+
+    # Mass and Uncertainties
+    # ----------------------
+    # This is either no entry '...' or something like:
+    #    '8.638 \u2002 (+0.040/-0.046)'
+    bh_mass = cells.pop(0)
+    # Avoid no mass given
+    if bh_mass != '...':
+        bh_mass = bh_mass.split('\u2002')
+        # If the mass is not what we expect, log error, but continue
+        if len(bh_mass) != 2:
+            _warn(catalog, "Mass cannot be parsed.", line, name)
+        else:
+            # Remove spaces, paranthesis, and signs
+            bh_mass, err = [re.sub(r'[ ()+-]', r'', mm) for mm in bh_mass]
+            # Split into higher and lower errors
+            err_hi, err_lo = err.split('/')
+            print(bh_mass, err_hi, err_lo)
+
+            mass_desc = ("BH Mass with one-sigma errors, calculated w/ reverberation "
+                         "mapping using <f> = {}")
+            # FIX: add additional sources from the sub-pages
+            use_sources = source
+            quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESC: mass_desc,
+                            QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
+            catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
+
     # Add alias of name, if one was found
-    if alias is not None:
-        catalog.entries[name].add_quantity('alias', name, source)
+    # if alias is not None:
+    #     catalog.entries[name].add_quantity('alias', name, source)
+
+    return
 
     # BH Mass, looks like "  3.9 (0.4,0.6) e9"
     # ----------------------------------------
@@ -272,4 +289,12 @@ def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None)
         # Add quantity with source
         catalog.entries[name].add_quantity(key, val, use_sources, **kwargs)
 
+    return
+
+
+def _warn(catalog, msg, line, name=None):
+    err_msg = msg + "\nLine: '{}'".format(line)
+    if name is not None:
+        err_msg = "'{}' : ".format(name) + err_msg
+    catalog.log.error(err_msg)
     return
