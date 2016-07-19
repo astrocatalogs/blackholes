@@ -130,16 +130,14 @@ def _add_entry_for_data_lines(catalog, lines):
         data_name = groups[0]
         alias = groups[1].strip()
     data_name = data_name.strip()
-    # If name matches pattern 'IC ####', remove space
-    if re.search('IC [0-9]{4}', data_name) is not None:
-        data_name = data_name.replace('IC ', 'IC')
     # At the end of the table, there is a blank row, return None in that case
     if not len(data_name):
         return None
     name = catalog.add_entry(data_name)
 
     # Add this source
-    source = catalog.entries[name].add_source(url=SOURCE_URL, bibcode=SOURCE_BIBCODE)
+    source = catalog.entries[name].add_source(
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True)
     # Add alias of name, if one was found
     if alias is not None:
         catalog.entries[name].add_quantity('alias', name, source)
@@ -167,7 +165,7 @@ def _add_entry_for_data_lines(catalog, lines):
     # Line '14' includes the 'method' of mass determination
     mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
     quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESC: mass_desc,
-                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_LOWER_VALUE: err_hi}
+                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
 
     # Add cells with similar data in the same way
