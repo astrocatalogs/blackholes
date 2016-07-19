@@ -4,11 +4,6 @@ from astrocats.catalog.entry import ENTRY, Entry
 from astrocats.catalog.key import KEY_TYPES, Key, KeyCollection
 
 
-_NAME_REPLACEMENT_REGEX = [
-    [r'IC ([0-9]{4})', r'IC\1']
-]
-
-
 class BLACKHOLE(ENTRY):
     """KeyCollection for `Blackhole` keys.
 
@@ -49,7 +44,7 @@ class Blackhole(Entry):
     _KEYS = BLACKHOLE
 
     def __init__(self, catalog, name, stub=False):
-        name = self._name_clean(name)
+        name = catalog.clean_entry_name(name)
         super().__init__(catalog, name, stub=stub)
         return
 
@@ -58,14 +53,6 @@ class Blackhole(Entry):
             bibcode=self.catalog.OSC_BIBCODE,
             name=self.catalog.OSC_NAME,
             url=self.catalog.OSC_URL, secondary=True)
-
-    def _name_clean(self, dirty):
-        """
-        """
-        clean = str(dirty)
-
-        return clean
-
 
     @classmethod
     def get_filename(cls, name):
