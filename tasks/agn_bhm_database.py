@@ -132,6 +132,17 @@ def _add_entry_for_data_line(catalog, line, varname):
                             QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
             catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
 
+    # RA/Dec
+    # ------
+    ra = cells.pop(0)
+    dec = cells.pop(0)
+    # Make sure ra and dec look right
+    if len(ra.split(':')) == 3 and len(dec.split(':')) == 3:
+        catalog.entries[name].add_quantity(BLACKHOLE.RA, ra, source)
+        catalog.entries[name].add_quantity(BLACKHOLE.DEC, dec, source)
+    else:
+        _warn(catalog, "RA/Dec cannot be parsed: '{}'/'{}'".format(ra, dec), line, name)
+
     # Add alias of name, if one was found
     # if alias is not None:
     #     catalog.entries[name].add_quantity('alias', name, source)
