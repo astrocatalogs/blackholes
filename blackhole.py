@@ -34,6 +34,7 @@ class BLACKHOLE(ENTRY):
 
     # Boolean Types
     # String Types
+    ACTIVITY = 'agn_activity'
     GALAXY_MORPHOLOGY = 'galaxy_morphology'
 
 
