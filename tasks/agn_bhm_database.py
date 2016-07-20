@@ -21,16 +21,12 @@ from astrocats.blackholes.blackhole import BLACKHOLE
 SOURCE_BIBCODE = "2015PASP..127...67B"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2015PASP..127...67B"
 DATA_URL = "http://www.astro.gsu.edu/AGNmass/"
+DATA_SUBPAGE_URL = "http://www.astro.gsu.edu/AGNmass/details.php?varname={}"
 
 
 def do_agn_bhm_database(catalog):
+    """Load data from the 'AGN Blackhole Mass Database': 2015PASP..127...67B.
     """
-
-    Get this line for description:
-    'M<sub>BH</sub> calculated using <i>&lt; f &gt;</i>&thinsp;=&thinsp; 2.8'
-
-    """
-
     log = catalog.log
     log.debug("do_agn_bhm_database()")
     task_str = catalog.get_current_task_str()
@@ -40,9 +36,21 @@ def do_agn_bhm_database(catalog):
         catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
     html = catalog.load_cached_url(DATA_URL, cached_path)
     if not html:
-        self.log("{} Failed to load data from '{}'.".format(
-            task_name, DATA_URL), level=logging.WARNING)
-        return
+        catalog.log.error("{} Failed to load data from '{}'.".format(
+            task_name, DATA_URL))
+        return False
+
+    # Get this line for description of mass calculation
+    #    'M<sub>BH</sub> calculated using <i>&lt; f &gt;</i>&thinsp;=&thinsp; 2.8'
+    mass_scale_factor = re.search("<i>&lt; f &gt;</i>&thinsp;=&thinsp; (.*)", html).groups()
+    # If pattern matches expectations, store it
+    if len(mass_scale_factor) == 1:
+        mass_scale_factor = mass_scale_factor[0]
+    # Otherwise, forget it
+    else:
+        err_msg = "Could not load `mass_scale_factor` from '{}'".format(mass_scale_factor)
+        catalog.log.error(err_msg)
+        return False
 
     soup = BeautifulSoup(html, 'html5lib')
 
@@ -65,17 +73,16 @@ def do_agn_bhm_database(catalog):
         # If no match is found, this is one of the header lines (not an entry line, skip)
         if groups is not None:
             varname = groups.groups()[0]
-            name = _add_entry_for_data_line(catalog, div.text, varname)
+            name = _add_entry_for_data_line(catalog, div.text, varname, mass_scale_factor)
             if name is not None:
                 entries += 1
 
         num += 1
 
+    return True
 
-    return
 
-
-def _add_entry_for_data_line(catalog, line, varname):
+def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     """
 
     Columns:
@@ -97,6 +104,9 @@ def _add_entry_for_data_line(catalog, line, varname):
     # print(cells, varname)
     if not len(cells):
         return None
+
+    mass_desc = ("BH Mass with one-sigma errors, calculated w/ reverberation "
+                 "mapping using a scale-factor of <f> = {}".format(mass_scale_factor))
 
     # Galaxy/BH Name
     # --------------
@@ -122,10 +132,7 @@ def _add_entry_for_data_line(catalog, line, varname):
             bh_mass, err = [re.sub(r'[ ()+-]', r'', mm) for mm in bh_mass]
             # Split into higher and lower errors
             err_hi, err_lo = err.split('/')
-            print(bh_mass, err_hi, err_lo)
 
-            mass_desc = ("BH Mass with one-sigma errors, calculated w/ reverberation "
-                         "mapping using <f> = {}")
             # FIX: add additional sources from the sub-pages
             use_sources = source
             quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESC: mass_desc,
@@ -150,169 +157,57 @@ def _add_entry_for_data_line(catalog, line, varname):
     redz = cells.pop(0)
     catalog.entries[name].add_quantity(BLACKHOLE.REDSHIFT, redz, source)
 
+    # Add alias of name, if given
+    # ---------------------------
+    # Sometimes none, sometimes multiple (separated by '\u2003')
+    if len(cells):
+        in_aliases = cells.pop(0)
+        in_aliases = [cc.strip() for cc in in_aliases.split('\u2003')]
+        aliases = [catalog.entries[name].add_alias(cc, source) for cc in in_aliases]
 
-    # Add alias of name, if one was found
-    # if alias is not None:
-    #     catalog.entries[name].add_quantity('alias', name, source)
+        if len(cells):
+            _warn(catalog, "`cells` still not empty! '{}'".format(cells), line, name)
 
-    return
-
-    # BH Mass, looks like "  3.9 (0.4,0.6) e9"
+    # Get data from blackhole-specific subpage
     # ----------------------------------------
-    mass_line = lines[1].text.strip()
-    bh_mass, error, exp = re.search('(.*) \((.*)\) e([0-9])', mass_line).groups()
-    exp = 'e' + exp
-    bh_mass += exp
-    err_lo, err_hi = error.split(',')
-    err_lo += exp
-    err_hi += exp
-    # Line '15' has the reference[s] for the mass
-    refs = [rr['href'] for rr in lines[15].contents if isinstance(rr, bs4.element.Tag)]
-    # If references are found, add them to this paper (McConnell & Ma)
-    use_sources = [source]
-    if len(refs):
-        for rr in refs:
-            new_src = catalog.entries[name].add_source(url=rr)
-            use_sources.append(new_src)
-    # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
-    use_sources = ",".join(str(src) for src in use_sources)
-
-    # Line '14' includes the 'method' of mass determination
-    mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
-    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESC: mass_desc,
-                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_LOWER_VALUE: err_hi}
-    catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
-
-    # Add cells with similar data in the same way
-    # -------------------------------------------
-    cell_data = [
-        # Quantity-Key               line-num, unit,        desc
-        [BLACKHOLE.GALAXY_VEL_DISP_BULGE, 2, 'km/s', "Host, bulge velocity dispersion"],
-        [BLACKHOLE.GALAXY_MASS_BULGE, 7, 'Msol', "Mass of the host's bulge"],
-        [BLACKHOLE.GALAXY_RAD_EFF_V, 9, 'arcsec', None],
-        [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec', None],
-        [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec', None],
-        [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
-        [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, MORPH_DESC],
-    ]
-    for key, num, unit, desc in cell_data:
-        val, err = _get_value_and_error(lines[num].text)
-        if val is not None:
-            quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESC: desc}
-            catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
-
-    # Bulge Luminosity v-band
-    val, err = _get_value_and_error(lines[3].text, cast=float)
-    if val is not None:
-        photo_kwargs = {
-            PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
-            PHOTOMETRY.BAND: 'v'
-        }
-        if err is not None:
-            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
-        catalog.entries[name].add_photometry(**photo_kwargs)
-
-    # Bulge Luminosity 3.6micron
-    val, err = _get_value_and_error(lines[5].text, cast=float)
-    if val is not None:
-        photo_kwargs = {
-            PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
-            PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
-        }
-        if err is not None:
-            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
-        catalog.entries[name].add_photometry(**photo_kwargs)
+    retval = _load_blackhole_subpage_data(catalog, name, varname, source)
+    # Warn on failure, but assume the entry is still okay.
+    if not retval:
+        _warn(catalog, "Failed to load subpage for varname '{}'.".format(varname), line, name)
 
     return name
 
 
-def _get_value_and_error(line, cast=None):
-    val = None
-    err = None
-
-    line = line.strip()
-    if line == '-' or line == '--':
-        return None, None
-
-    line = [ll.strip() for ll in line.split('±')]
-    if len(line) == 2:
-        val, err = line
-    elif len(line) == 1 and len(line[0]):
-        val = line[0]
-    else:
-        return None, None
-
-    # Cast to certain `type`
-    if cast is not None:
-        if val is not None:
-            val = cast(val)
-        if err is not None:
-            err = cast(err)
-
-    return val, err
-
-
-def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None):
-    """Given an input `line`, try to parse a value and error and store to the appropriate entry.
-
-    Arguments
-    ---------
-    catalog
-    name : str
-        Name of the entry to which to add quantity
-    key : str
-        Name of the quantity itself that is being stored
-    src : str
-        The source alias that this data comes from
-    line : `bs4.element.NavigableString` object
-        From which data is parsed
-    unit : str
-        Unit of measurement for this quantity
-    desc : str
-        Description of this quantity
-
+def _load_blackhole_subpage_data(catalog, name, varname, source):
+    """Load data from this entry's dedicated subpage.
     """
-    # If the line contains a URL for an additional source, extract that
-    # -----------------------------------------------------------------
-    refs = [rr['href'] for rr in line.contents if isinstance(rr, bs4.element.Tag)]
-    # If references are found, add them to this paper
-    use_sources = [src]
-    if len(refs):
-        for rr in refs:
-            print("{} - {}: found url '{}'.".format(name, key, rr))
-            new_src = catalog.entries[name].add_source(url=rr)
-            use_sources.append(new_src)
-    # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
-    use_sources = ",".join(str(src) for src in use_sources)
+    # Construct URL and load HTML data
+    data_url = DATA_SUBPAGE_URL.format(varname)
+    cached_path = os.path.join(
+        catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
+    html = catalog.load_cached_url(data_url, cached_path)
+    if not html:
+        catalog.log.error("{} Failed to load data from '{}'.".format(
+            task_name, DATA_URL))
+        return False
 
-    # Try to get a value and an error from the input line's text
-    # ----------------------------------------------------------
-    val, err = _get_value_and_error(line.text)
-    # If a value is given, add it
-    if val is not None:
-        kwargs = {}
-        # Include units of measure
-        if unit is not None:
-            kwargs[QUANTITY.U_VALUE] = unit
-        # Include an error (uncertainty) if one was found
-        if err is not None:
-            if desc is not None:
-                desc += " with one-sigma error."
-            kwargs[QUANTITY.ERROR] = err
-        # Include a description if one is given
-        if desc is not None:
-            kwargs[QUANTITY.DESC] = desc
-
-        # Add quantity with source
-        catalog.entries[name].add_quantity(key, val, use_sources, **kwargs)
-
-    return
+    # Extract the 'activity' of the BH
+    # --------------------------------
+    activ = re.search("<b>Activity:</b>(.*)</td><td>", html).groups()
+    print(activ)
+    if len(activ) == 1:
+        catalog.entries[name].add_quantity(BLACKHOLE.ACTIVITY, bh_mass, use_sources, **quant_kwargs)
 
 
-def _warn(catalog, msg, line, name=None):
-    err_msg = msg + "\nLine: '{}'".format(line)
+    # print(html)
+
+    return True
+
+
+def _warn(catalog, msg, line=None, name=None):
+    err_msg = msg
+    if line is not None:
+        err_msg += "\nLine: '{}'".format(line)
     if name is not None:
         err_msg = "'{}' : ".format(name) + err_msg
     catalog.log.error(err_msg)
