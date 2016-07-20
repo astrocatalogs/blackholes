@@ -134,6 +134,7 @@ def _add_entry_for_data_line(catalog, line, varname):
 
     # RA/Dec
     # ------
+    # Exists for all entries
     ra = cells.pop(0)
     dec = cells.pop(0)
     # Make sure ra and dec look right
@@ -142,6 +143,13 @@ def _add_entry_for_data_line(catalog, line, varname):
         catalog.entries[name].add_quantity(BLACKHOLE.DEC, dec, source)
     else:
         _warn(catalog, "RA/Dec cannot be parsed: '{}'/'{}'".format(ra, dec), line, name)
+
+    # Redshift
+    # --------
+    # Exists for all entries
+    redz = cells.pop(0)
+    catalog.entries[name].add_quantity(BLACKHOLE.REDSHIFT, redz, source)
+
 
     # Add alias of name, if one was found
     # if alias is not None:
