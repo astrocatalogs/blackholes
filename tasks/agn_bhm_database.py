@@ -65,11 +65,8 @@ def do_agn_bhm_database(catalog):
     num_div_lines = len(div_lines)
 
     # Go through each element of the tables
-    num = 0
     entries = 0
-    while num < num_div_lines:
-        div = div_lines[num]
-
+    for div in pbar(div_lines, task_str):
         # Get the `varname` -- ID number for each row
         #    The first element of the `contents` contains an href with the 'varname'
         cell_text = str(div.contents[0])
@@ -80,8 +77,6 @@ def do_agn_bhm_database(catalog):
             name = _add_entry_for_data_line(catalog, div.text, varname, mass_scale_factor)
             if name is not None:
                 entries += 1
-
-        num += 1
 
     return True
 
