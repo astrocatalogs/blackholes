@@ -39,12 +39,9 @@ def do_agn_bhm_database(catalog):
     task_str = catalog.get_current_task_str()
     task_name = catalog.current_task.name
     # Load data from URL or cached copy of it
-    cached_path = os.path.join(
-        catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
-    html = catalog.load_cached_url(DATA_URL, cached_path)
-    if not html:
-        catalog.log.error("{} Failed to load data from '{}'.".format(
-            task_name, DATA_URL))
+    cached_path = SOURCE_BIBCODE + '.txt'
+    html = catalog.load_url(DATA_URL, cached_path, fail=True)
+    if html is None:
         return False
 
     # Get this line for description of mass calculation
@@ -207,12 +204,9 @@ def _load_blackhole_subpage_data(catalog, name, varname, source):
     """
     # Construct URL and load HTML data
     data_url = DATA_SUBPAGE_URL.format(varname)
-    cached_path = os.path.join(
-        catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
-    html = catalog.load_cached_url(data_url, cached_path)
-    if not html:
-        catalog.log.error("{} Failed to load data from '{}'.".format(
-            task_name, DATA_URL))
+    cached_path = "{:s}_{:s}.txt".format(SOURCE_BIBCODE, name)
+    html = catalog.load_url(data_url, cached_path, fail=True)
+    if html is None:
         return [], [], []
 
     # Extract the 'activity' of the BH
@@ -225,8 +219,6 @@ def _load_blackhole_subpage_data(catalog, name, varname, source):
 
     # Extract Luminosities and citations from the table
     # -------------------------------------------------
-    # WHAT LUMINOSITY IS THIS?!?!?!  AGN,5100??
-
     soup = BeautifulSoup(html, 'html5lib')
     # The whole table is nested in a `<table class="body">`
     full_table = soup.find('table', attrs={'class': 'body'})
