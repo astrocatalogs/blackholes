@@ -19,30 +19,23 @@ from astrocats.blackholes.blackhole import BLACKHOLE
 
 SOURCE_BIBCODE = "2013ApJ...764..184M"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2013ApJ...764..184M"
+DATA_URL = "http://blackhole.berkeley.edu/"
 MORPH_DESC = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
               "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
               "are core (C), intermediate (I), and power-law (pl).")
-
-PC = ap.constants.pc.cgs.value   # 1 pc in centimeters
 
 
 def do_mcconnell_ma(catalog):
     """
     """
-
-    DATA_URL = "http://blackhole.berkeley.edu/"
-
     log = catalog.log
     log.debug("do_mcconnell_ma()")
     task_str = catalog.get_current_task_str()
     task_name = catalog.current_task.name
     # Load data from URL or cached copy of it
-    cached_path = os.path.join(
-        catalog.get_current_task_repo(), SOURCE_BIBCODE + '.txt')
-    html = catalog.load_cached_url(DATA_URL, cached_path)
+    cached_path = SOURCE_BIBCODE + '.txt'
+    html = catalog.load_url(DATA_URL, cached_path, fail=True)
     if not html:
-        self.log("{} Failed to load data from '{}'.".format(
-            task_name, DATA_URL), level=logging.WARNING)
         return
 
     soup = BeautifulSoup(html, 'html5lib')
