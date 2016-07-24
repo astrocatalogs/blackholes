@@ -15,12 +15,13 @@ class BlackholeCatalog(Catalog):
     _NAME_REPLACEMENT_REGEX = [
         # 'IC ####'    --> 'IC####'
         [r'IC ([0-9]{4})', r'IC\1', None],
-        # [Cygnus]' A' --> [Cygnus]'A'
-        [r'[ -]([A-Z])$',  r'_\1',  None],
-        # 'Milky WaY' --> 'milky_way'
+        # [Cygnus]' A' --> [Cygnus]'-A'
+        [r'[ ]([A-Z])$',  r'-\1',  None],
+        # Make whole words fully lowercase
+        # e.g. 'Milky WaY' --> 'milky way'
         [r'^[ a-zA-Z]*$', lambda m: m.group(0).lower(), None],
         # Replace all spaces with underscores, do this last: specifics already handled
-        [r' ', r'_', None],
+        # [r' ', r'_', None],
     ]
 
     class PATHS(Catalog.PATHS):
