@@ -1,6 +1,9 @@
 """Retrieve the data from [McConnell & Ma 2013]
 
+http://blackhole.berkeley.edu/
 See: http://adsabs.harvard.edu/abs/2013ApJ...764..184M
+
+Data exists in a single online table.  That data is cached locally in 'blackholes/input/external/'.
 """
 import logging
 import os
@@ -10,6 +13,7 @@ import bs4
 from bs4 import BeautifulSoup
 import astropy as ap
 import astropy.constants
+import tqdm
 
 from astrocats.catalog.utils import pbar
 from astrocats.catalog.quantity import QUANTITY
@@ -49,18 +53,23 @@ def do_mcconnell_ma(catalog):
     interval = 16
     num = 0
     entries = 0
-    while num < num_div_lines:
-        div = div_lines[num]
 
-        # Find each row of the table (starts with class='psdg-left')
-        if ('class' in div.attrs) and ('psdg-left' in div['class']):
-            entries += 1
-            bh_name = _add_entry_for_data_lines(catalog, div_lines[num:num+interval])
-            if bh_name is not None:
-                log.debug("{}: added '{}'".format(task_name, bh_name))
-                num += interval-1
+    with tqdm.tqdm(desc=task_str, total=100, dynamic_ncols=True) as pbar:
 
-        num += 1
+        while num < num_div_lines:
+            div = div_lines[num]
+
+            # Find each row of the table (starts with class='psdg-left')
+            if ('class' in div.attrs) and ('psdg-left' in div['class']):
+                entries += 1
+                bh_name = _add_entry_for_data_lines(catalog, div_lines[num:num+interval])
+                if bh_name is not None:
+                    log.debug("{}: added '{}'".format(task_name, bh_name))
+                    num += interval-1
+                    pbar.update(interval-1)
+
+            num += 1
+            pbar.update(1)
 
     return
 
@@ -157,7 +166,7 @@ def _add_entry_for_data_lines(catalog, lines):
 
     # Line '14' includes the 'method' of mass determination
     mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
-    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESC: mass_desc,
+    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESCRIPTION: mass_desc,
                     QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
 
@@ -176,7 +185,7 @@ def _add_entry_for_data_lines(catalog, lines):
     for key, num, unit, desc in cell_data:
         val, err = _get_value_and_error(lines[num].text)
         if val is not None:
-            quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESC: desc}
+            quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESCRIPTION: desc}
             catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
 
     # Bulge Luminosity v-band
@@ -184,7 +193,8 @@ def _add_entry_for_data_lines(catalog, lines):
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
+            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)',
+            PHOTOMETRY.DESCRIPTION: 'Bulge v-band Luminosity',
             PHOTOMETRY.BAND: 'v'
         }
         if err is not None:
@@ -196,7 +206,8 @@ def _add_entry_for_data_lines(catalog, lines):
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)', PHOTOMETRY.DESC: 'Bulge v-band Luminosoity',
+            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)',
+            PHOTOMETRY.DESCRIPTION: 'Bulge v-band Luminosity',
             PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
         }
         if err is not None:
@@ -281,7 +292,7 @@ def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None)
             kwargs[QUANTITY.ERROR] = err
         # Include a description if one is given
         if desc is not None:
-            kwargs[QUANTITY.DESC] = desc
+            kwargs[QUANTITY.DESCRIPTION] = desc
 
         # Add quantity with source
         catalog.entries[name].add_quantity(key, val, use_sources, **kwargs)

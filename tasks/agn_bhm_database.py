@@ -2,6 +2,13 @@
 
 http://www.astro.gsu.edu/AGNmass/
 See: http://adsabs.harvard.edu/abs/2015PASP..127...67B
+
+Loads a bunch of AGN entries from URLs for each one.  Each entry (URL) is cached to a local txt
+file in 'blackholes/input/external/'.
+
+In normal mode, AGN entries are loaded from URLs, saved to cached files (`catalog.load_url`).
+In archive mode, the cached files are loaded.
+
 """
 import logging
 import os
@@ -151,7 +158,7 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
             bh_mass, err = [re.sub(r'[ ()+-]', r'', mm) for mm in bh_mass]
             # Split into higher and lower errors
             err_hi, err_lo = err.split('/')
-            quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESC: mass_desc,
+            quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESCRIPTION: mass_desc,
                             QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
             catalog.entries[name].add_quantity(
                 BLACKHOLE.MASS, bh_mass, all_sources, **quant_kwargs)
@@ -250,7 +257,8 @@ def _load_blackhole_subpage_data(catalog, name, varname, source):
                     photo_kwargs = {
                         PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: lum_src,
                         PHOTOMETRY.HOST: True, PHOTOMETRY.E_LUMINOSITY: err,
-                        PHOTOMETRY.U_LUMINOSITY: 'log(erg/s)', PHOTOMETRY.DESC: DESC_AGN_LUM,
+                        PHOTOMETRY.U_LUMINOSITY: 'log(erg/s)',
+                        PHOTOMETRY.DESCRIPTION: DESC_AGN_LUM,
                         PHOTOMETRY.WAVELENGTH: '5100', PHOTOMETRY.U_WAVELENGTH: 'angrstrom'
                     }
                     catalog.entries[name].add_photometry(**photo_kwargs)
