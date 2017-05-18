@@ -1,11 +1,11 @@
-"""Supernovae specific catalog class.
+"""Blackhole specific catalog class.
 """
 import os
 import re
 
 from astrocats.catalog.catalog import Catalog
-
 from .blackhole import BLACKHOLE, Blackhole
+from . production import blackhole_director
 
 
 class BlackholeCatalog(Catalog):
@@ -24,13 +24,10 @@ class BlackholeCatalog(Catalog):
         # [r' ', r'_', None],
     ]
 
+    TRAVIS_QUERY_LIMIT = 10
+    
     class PATHS(Catalog.PATHS):
-
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
-
-        def __init__(self, catalog):
-            super().__init__(catalog)
-            return
 
     class SCHEMA(Catalog.SCHEMA):
         pass
@@ -38,9 +35,11 @@ class BlackholeCatalog(Catalog):
     def __init__(self, args, log):
         """
         """
+        log.debug("BlackholeCatalog.__init__()")
         # Initialize super `astrocats.catalog.catalog.Catalog` object
         super().__init__(args, log)
         self.proto = Blackhole
+        self.Director = blackhole_director.Blackhole_Director
         return
 
     def clone_repos(self):
