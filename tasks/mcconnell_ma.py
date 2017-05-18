@@ -16,8 +16,10 @@ import astropy.constants
 import tqdm
 
 from astrocats.catalog.utils import pbar
+from astrocats.catalog.source import SOURCE
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
+from astrocats.catalog.utils import dict_to_pretty_string
 
 from astrocats.blackholes.blackhole import BLACKHOLE
 
@@ -154,12 +156,26 @@ def _add_entry_for_data_lines(catalog, lines):
     err_lo += exp
     err_hi += exp
     # Line '15' has the reference[s] for the mass
-    refs = [rr['href'] for rr in lines[15].contents if isinstance(rr, bs4.element.Tag)]
+    # refs = [rr['href'] for rr in lines[15].contents if isinstance(rr, bs4.element.Tag)]
+    urls = []
+    names = []
+    for ll in lines[15].contents:
+        if isinstance(ll, bs4.element.Tag):
+            urls.append(ll['href'])
+            names.append(ll.text.strip())
     # If references are found, add them to this paper (McConnell & Ma)
     use_sources = [source]
-    if len(refs):
-        for rr in refs:
-            new_src = catalog.entries[name].add_source(url=rr)
+    if len(urls):
+        for uu, nn in zip(urls, names):
+            src_kw = {SOURCE.URL: uu, SOURCE.NAME: nn}
+            # Try to get a bibcode from the URL
+            try:
+                bibcode = uu.split('/abs/')[1]
+                src_kw[SOURCE.BIBCODE] = bibcode
+            except:
+                pass
+
+            new_src = catalog.entries[name].add_source(**src_kw)
             use_sources.append(new_src)
     # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
     use_sources = ",".join(str(src) for src in use_sources)
