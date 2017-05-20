@@ -21,14 +21,34 @@ from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
 from astrocats.catalog.utils import dict_to_pretty_string
 
-from astrocats.blackholes.blackhole import BLACKHOLE
+from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2013ApJ...764..184M"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2013ApJ...764..184M"
 DATA_URL = "http://blackhole.berkeley.edu/"
-MORPH_DESC = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
-              "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
-              "are core (C), intermediate (I), and power-law (pl).")
+# MORPH_DESC = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
+#               "lenticular (S0), spiral (S), and irregular (Irr). Inner photometric profiles "
+#               "are core (C), intermediate (I), and power-law (pl).")
+
+GAL_MORPH_DICT = {
+    "E": GALAXY_MORPHS.ELLIPTICAL,
+    "S0": GALAXY_MORPHS.LENTICULAR,
+    "S": GALAXY_MORPHS.SPIRAL,
+    "Sb": GALAXY_MORPHS.SPIRAL_BARRED,
+    "Irr": GALAXY_MORPHS.IRREGULAR,
+}
+
+INNER_MORPH_DICT = {
+    "C": "core",
+    "I": "intermediate",
+    "pl": "power-law"
+}
+
+METHOD_DICT = {
+    "masers": BH_MASS_METHODS.DYN_MASERS,
+    "stars": BH_MASS_METHODS.DYN_STARS,
+    "gas": BH_MASS_METHODS.DYN_GAS,
+}
 
 
 def do_mcconnell_ma(catalog):
@@ -141,7 +161,8 @@ def _add_entry_for_data_lines(catalog, lines):
 
     # Add this source
     source = catalog.entries[name].add_source(
-        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True)
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True, derive_parameters=False)
+
     # Add alias of name, if one was found
     if alias is not None:
         catalog.entries[name].add_quantity('alias', name, source)
@@ -181,9 +202,12 @@ def _add_entry_for_data_lines(catalog, lines):
     use_sources = ",".join(str(src) for src in use_sources)
 
     # Line '14' includes the 'method' of mass determination
-    mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(lines[14].text.strip())
+    method = lines[14].text.strip()
+    mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(method)
+    method = _parse_method(method)
     quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESCRIPTION: mass_desc,
-                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
+                    QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi,
+                    QUANTITY.KIND: method}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
 
     # Add cells with similar data in the same way
@@ -196,13 +220,24 @@ def _add_entry_for_data_lines(catalog, lines):
         [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec', None],
         [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec', None],
         [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
-        [BLACKHOLE.GALAXY_MORPHOLOGY, 13, None, MORPH_DESC],
     ]
     for key, num, unit, desc in cell_data:
         val, err = _get_value_and_error(lines[num].text)
         if val is not None:
             quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESCRIPTION: desc}
             catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
+
+    # Galaxy morphology
+    val, err = _get_value_and_error(lines[13].text)
+    if val is None:
+        raise RuntimeError("Could not get morphology from column 13: '{}'".format(lines[13].text))
+    morph, desc = _parse_morphology(val)
+    if morph is None:
+        raise ValueError("Unrecognized morphology type '{}' ('{}')".format(val, lines[13].text))
+    quant_kwargs = {}
+    if desc is not None:
+        quant_kwargs = {QUANTITY.DESCRIPTION: desc}
+    catalog.entries[name].add_quantity(BLACKHOLE.GALAXY_MORPHOLOGY, morph, source, **quant_kwargs)
 
     # Bulge Luminosity v-band
     val, err = _get_value_and_error(lines[3].text, cast=float)
@@ -229,6 +264,9 @@ def _add_entry_for_data_lines(catalog, lines):
         if err is not None:
             photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
         catalog.entries[name].add_photometry(**photo_kwargs)
+
+    catalog.log.warning(dict_to_pretty_string(catalog.entries[name]))
+    # sys.exit(23232)
 
     return name
 
@@ -314,3 +352,22 @@ def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None)
         catalog.entries[name].add_quantity(key, val, use_sources, **kwargs)
 
     return
+
+
+def _parse_morphology(val):
+    vals = [vv.strip(' ()') for vv in val.split()]
+    # Entires may be things like "E/S0", record both
+    morph = [GAL_MORPH_DICT[vv] for vv in vals[0].split('/')]
+    morph = "/".join(morph)
+    # Inner photometric profiles might also be given
+    desc = None
+    if len(vals) == 2:
+        desc = "inner photometric profile: {}".format(INNER_MORPH_DICT[vals[1]])
+    return morph, desc
+
+
+def _parse_method(val):
+    vals = [vv.strip() for vv in val.split(',')]
+    method = [METHOD_DICT[vv] for vv in vals]
+    method = ", ".join(method)
+    return method

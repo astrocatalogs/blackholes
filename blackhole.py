@@ -22,20 +22,20 @@ class BLACKHOLE(ENTRY):
     """
     # Any Type
     # Numeric Types
-    MASS = 'mass'
-    DISTANCE = 'distance'
+    MASS = Key('mass', KEY_TYPES.NUMERIC)
+    DISTANCE = Key('distance', KEY_TYPES.NUMERIC)
     # RAD_INFL = 'radius_influence'
-    GALAXY_MASS_BULGE = 'galaxy_bulge_mass'
-    GALAXY_VEL_DISP_BULGE = 'galaxy_bulge_vel_disp'
-    GALAXY_LUMINOSITY_BULGE = 'galaxy_bulge_luminosity'
-    GALAXY_RAD_EFF_V = 'galaxy_rad_eff_v-band'
-    GALAXY_RAD_EFF_I = 'galaxy_rad_eff_i-band'
-    GALAXY_RAD_EFF_3p6 = 'galaxy_rad_eff_3.6-micron'
+    GALAXY_MASS_BULGE = Key('galaxy_bulge_mass', KEY_TYPES.NUMERIC)
+    GALAXY_VEL_DISP_BULGE = Key('galaxy_bulge_vel_disp', KEY_TYPES.NUMERIC)
+    GALAXY_LUMINOSITY_BULGE = Key('galaxy_bulge_luminosity', KEY_TYPES.NUMERIC)
+    GALAXY_RAD_EFF_V = Key('galaxy_rad_eff_v-band', KEY_TYPES.NUMERIC)
+    GALAXY_RAD_EFF_I = Key('galaxy_rad_eff_i-band', KEY_TYPES.NUMERIC)
+    GALAXY_RAD_EFF_3p6 = Key('galaxy_rad_eff_3.6-micron', KEY_TYPES.NUMERIC)
 
     # Boolean Types
     # String Types
-    ACTIVITY = 'agn_activity'
-    GALAXY_MORPHOLOGY = 'galaxy_morphology'
+    ACTIVITY = Key('agn_activity', KEY_TYPES.STRING)
+    GALAXY_MORPHOLOGY = Key('galaxy_morphology', KEY_TYPES.STRING, listable=True)
 
 
 class Blackhole(Entry):
@@ -61,3 +61,17 @@ class Blackhole(Entry):
         fname = fname.replace(' ', '_')
         fname = fname.replace('-', '_')
         return fname
+
+
+class GALAXY_MORPHS:
+    ELLIPTICAL = "elliptical"
+    LENTICULAR = "lenticular"
+    SPIRAL = "spiral"
+    SPIRAL_BARRED = "spiral, barred"
+    IRREGULAR = "irregular"
+
+
+class BH_MASS_METHODS:
+    DYN_MASERS = "dynamics (masers)"
+    DYN_STARS = "dynamics (stars)"
+    DYN_GAS = "dynamics (gas)"
