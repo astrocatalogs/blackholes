@@ -12,7 +12,6 @@ In archive mode, the cached files are loaded.
 """
 import logging
 import os
-import csv
 import re
 import bs4
 from bs4 import BeautifulSoup
