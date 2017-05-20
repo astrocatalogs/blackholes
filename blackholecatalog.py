@@ -25,7 +25,7 @@ class BlackholeCatalog(Catalog):
     ]
 
     TRAVIS_QUERY_LIMIT = 10
-    
+
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
 
