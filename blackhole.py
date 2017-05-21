@@ -31,6 +31,8 @@ class BLACKHOLE(ENTRY):
     GALAXY_RAD_EFF_V = Key('galaxy_rad_eff_v-band', KEY_TYPES.NUMERIC)
     GALAXY_RAD_EFF_I = Key('galaxy_rad_eff_i-band', KEY_TYPES.NUMERIC)
     GALAXY_RAD_EFF_3p6 = Key('galaxy_rad_eff_3.6-micron', KEY_TYPES.NUMERIC)
+    GALAXY_VEL_DISP = Key('galaxy_vel_disp', KEY_TYPES.NUMERIC)
+    GALAXY_MASS_TO_LIGHT_RATIO = Key('mass_to_light', KEY_TYPES.NUMERIC)
 
     # Boolean Types
     # String Types
@@ -75,3 +77,5 @@ class BH_MASS_METHODS:
     DYN_MASERS = "dynamics (masers)"
     DYN_STARS = "dynamics (stars)"
     DYN_GAS = "dynamics (gas)"
+    DYN_MODELS = "dynamics (three-integral models)"
+    REVERB_MAP = "reverberation mapping"
