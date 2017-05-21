@@ -20,12 +20,12 @@ import astropy as ap
 import astropy.constants
 import sys
 
-from astrocats.catalog.utils import pbar
+from astrocats.catalog import utils
 from astrocats.catalog.photometry import PHOTOMETRY
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.source import SOURCE, Source
 
-from astrocats.blackholes.blackhole import BLACKHOLE
+from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2015PASP..127...67B"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2015PASP..127...67B"
@@ -72,7 +72,7 @@ def do_agn_bhm_database(catalog):
 
     # Go through each element of the tables
     entries = 0
-    for div in pbar(div_lines, task_str):
+    for div in utils.pbar(div_lines, task_str):
         # Get the `varname` -- ID number for each row
         #    The first element of the `contents` contains an href with the 'varname'
         cell_text = str(div.contents[0])
@@ -158,7 +158,8 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
             # Split into higher and lower errors
             err_hi, err_lo = err.split('/')
             quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESCRIPTION: mass_desc,
-                            QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi}
+                            QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi,
+                            QUANTITY.KIND: BH_MASS_METHODS.REVERB_MAP}
             catalog.entries[name].add_quantity(
                 BLACKHOLE.MASS, bh_mass, all_sources, **quant_kwargs)
 
@@ -179,6 +180,9 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     # Exists for all entries
     redz = cells.pop(0)
     catalog.entries[name].add_quantity(BLACKHOLE.REDSHIFT, redz, source)
+
+    # catalog.log.warning(utils.dict_to_pretty_string(catalog.entries[name]))
+    # sys.exit(23232)
 
     # Add alias of name, if given
     # ---------------------------
