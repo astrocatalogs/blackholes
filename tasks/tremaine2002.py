@@ -23,6 +23,7 @@ from astrocats.catalog.utils import dict_to_pretty_string
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2002ApJ...574..740T"
+SOURCE_NAME = "Tremaine+2002"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2002ApJ...574..740T"
 MORPH_DESC = ("Galaxy morphologies are one of:"
               "{'SBbc', 'E5', 'E4', 'Sbc', 'E3', 'Sb', 'E1', 'S0', 'E2', 'E0', 'SB0'}.")
@@ -209,11 +210,12 @@ def _add_entry_for_data_line(catalog, line):
     name = catalog.add_entry(data_name)
     # Add this source
     source = catalog.entries[name].add_source(
-        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True)
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
 
     # Add alias of name, if one was found
     if alias is not None:
-        catalog.entries[name].add_quantity('alias', name, source)
+        # log.warning("Adding alias '{}' to name '{}'".format(alias, name))
+        catalog.entries[name].add_quantity('alias', alias, source)
 
     # [1] Galaxy Morphology
     # ---------------------

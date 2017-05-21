@@ -16,6 +16,7 @@ from astrocats.catalog.photometry import PHOTOMETRY
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2013ApJ...764..184M"
+SOURCE_NAME = "McConnell & Ma 2013"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2013ApJ...764..184M"
 DATA_URL = "http://blackhole.berkeley.edu/"
 # MORPH_DESC = ("Morphology of the host galaxy: Morphologies are  elliptical (E), "
@@ -156,7 +157,8 @@ def _add_entry_for_data_lines(catalog, lines):
 
     # Add this source
     source = catalog.entries[name].add_source(
-        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True, derive_parameters=False)
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME,
+        secondary=True, derive_parameters=False)
 
     # Add alias of name, if one was found
     if alias is not None:

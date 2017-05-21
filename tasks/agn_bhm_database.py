@@ -28,6 +28,7 @@ from astrocats.catalog.source import SOURCE, Source
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2015PASP..127...67B"
+SOURCE_NAME = "Bentz & Katz 2015"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2015PASP..127...67B"
 DATA_URL = "http://www.astro.gsu.edu/AGNmass/"
 DATA_SUBPAGE_URL = "http://www.astro.gsu.edu/AGNmass/details.php?varname={}"
@@ -119,7 +120,7 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     name = catalog.add_entry(name)
     # Add this source
     source = catalog.entries[name].add_source(
-        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, secondary=True)
+        url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
 
     # Get data from blackhole-specific subpage
     # ----------------------------------------
