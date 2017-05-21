@@ -28,6 +28,16 @@
         "repo": "input/external",
         "priority": 10
     },
+    "tremaine2002": {
+        "nice_name": "%pre Tremaine et al. 2002",
+        "active": true,
+        "update": false,
+        "archived": true,
+        "module": "blackholes.tasks.tremaine2002",
+        "function": "do_tremaine_2002",
+        "repo": "input/internal",
+        "priority": 10
+    },
     "merge_duplicates": {
         "nice_name": "Merging duplicates",
         "active": true,
