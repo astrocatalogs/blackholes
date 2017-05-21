@@ -20,8 +20,10 @@ class BlackholeCatalog(Catalog):
         # Make whole words fully lowercase
         # e.g. 'Milky WaY' --> 'milky way'
         [r'^[ a-zA-Z]*$', lambda m: m.group(0).lower(), None],
-        # Replace all spaces with underscores, do this last: specifics already handled
-        # [r' ', r'_', None],
+        # Replace "N####" or "N ####" with "NGC####"
+        [r'N([0-9]{4})', r'NGC\1', None],
+        # Remove all spaces, do this last: specifics already handled
+        [r' ', r'', None],
     ]
 
     TRAVIS_QUERY_LIMIT = 10
