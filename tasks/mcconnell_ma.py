@@ -5,21 +5,13 @@ See: http://adsabs.harvard.edu/abs/2013ApJ...764..184M
 
 Data exists in a single online table.  That data is cached locally in 'blackholes/input/external/'.
 """
-import logging
-import os
-import csv
 import re
 import bs4
-from bs4 import BeautifulSoup
-import astropy as ap
-import astropy.constants
 import tqdm
 
-from astrocats.catalog.utils import pbar
 from astrocats.catalog.source import SOURCE
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
-from astrocats.catalog.utils import dict_to_pretty_string
 
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
@@ -64,7 +56,7 @@ def do_mcconnell_ma(catalog):
     if not html:
         return
 
-    soup = BeautifulSoup(html, 'html5lib')
+    soup = bs4.BeautifulSoup(html, 'html5lib')
 
     # The whole table is nested in a 'div'
     full_table = soup.find('div', id="psdgraphics-com-table")
@@ -75,6 +67,7 @@ def do_mcconnell_ma(catalog):
     interval = 16
     num = 0
     entries = 0
+    added = 0
 
     with tqdm.tqdm(desc=task_str, total=100, dynamic_ncols=True) as pbar:
 
@@ -89,10 +82,12 @@ def do_mcconnell_ma(catalog):
                     log.debug("{}: added '{}'".format(task_name, bh_name))
                     num += interval-1
                     pbar.update(interval-1)
+                    added += 1
 
             num += 1
             pbar.update(1)
 
+    log.info("Added {} ({} entries)".format(added, entries))
     return
 
 
@@ -105,7 +100,7 @@ def _add_entry_for_data_lines(catalog, lines):
     x    01: M_BH (+,-) M_sun
     x    02: sigma (km/s) -- bulge velocity dispersion
     x    03: log(L_V) -- bulge luminosity [log of solar units]
-    -    04: M_V -- v-band luminosity [magnitude] -- skip magnitude
+    x    04: M_V -- v-band luminosity [magnitude]
     x    05: log(L_3.6) -- 3.6 micron bulge luminosity
     -    06: M_3.6
     x    07: M_bulge (M_sun)
@@ -239,7 +234,7 @@ def _add_entry_for_data_lines(catalog, lines):
         quant_kwargs = {QUANTITY.DESCRIPTION: desc}
     catalog.entries[name].add_quantity(BLACKHOLE.GALAXY_MORPHOLOGY, morph, source, **quant_kwargs)
 
-    # Bulge Luminosity v-band
+    # [3] Bulge Luminosity v-band
     val, err = _get_value_and_error(lines[3].text, cast=float)
     if val is not None:
         photo_kwargs = {
@@ -252,21 +247,44 @@ def _add_entry_for_data_lines(catalog, lines):
             photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
         catalog.entries[name].add_photometry(**photo_kwargs)
 
-    # Bulge Luminosity 3.6micron
+    # [4] Bulge Magnitude v-band
+    val, err = _get_value_and_error(lines[4].text, cast=float)
+    if val is not None:
+        photo_kwargs = {
+            PHOTOMETRY.MAGNITUDE: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
+            PHOTOMETRY.U_LUMINOSITY: 'Magnitude',
+            PHOTOMETRY.DESCRIPTION: 'Bulge v-band Magnitude',
+            PHOTOMETRY.BAND: 'v'
+        }
+        if err is not None:
+            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
+        catalog.entries[name].add_photometry(**photo_kwargs)
+
+    # [5] Bulge Luminosity 3.6 micron
     val, err = _get_value_and_error(lines[5].text, cast=float)
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
             PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)',
-            PHOTOMETRY.DESCRIPTION: 'Bulge v-band Luminosity',
+            PHOTOMETRY.DESCRIPTION: 'Bulge 3.6 micron Luminosity',
             PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
         }
         if err is not None:
             photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
         catalog.entries[name].add_photometry(**photo_kwargs)
 
-    catalog.log.warning(dict_to_pretty_string(catalog.entries[name]))
-    # sys.exit(23232)
+    # [6] Bulge Magnitude 3.6 micron
+    val, err = _get_value_and_error(lines[6].text, cast=float)
+    if val is not None:
+        photo_kwargs = {
+            PHOTOMETRY.MAGNITUDE: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
+            PHOTOMETRY.U_LUMINOSITY: 'Magnitude',
+            PHOTOMETRY.DESCRIPTION: 'Bulge 3.6 micron Magnitude',
+            PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
+        }
+        if err is not None:
+            photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
+        catalog.entries[name].add_photometry(**photo_kwargs)
 
     return name
 
