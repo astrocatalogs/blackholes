@@ -4,7 +4,7 @@ import os
 import re
 
 from astrocats.catalog.catalog import Catalog
-from .blackhole import BLACKHOLE, Blackhole
+from .blackhole import Blackhole
 from . production import blackhole_director
 
 
@@ -27,6 +27,7 @@ class BlackholeCatalog(Catalog):
     ]
 
     TRAVIS_QUERY_LIMIT = 10
+    RAISE_ERROR_ON_ADDITION_FAILURE = True
 
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
