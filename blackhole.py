@@ -1,7 +1,7 @@
 """
 """
 from astrocats.catalog.entry import ENTRY, Entry
-from astrocats.catalog.key import KEY_TYPES, Key, KeyCollection
+from astrocats.catalog.key import KEY_TYPES, Key
 
 
 class BLACKHOLE(ENTRY):
@@ -33,6 +33,10 @@ class BLACKHOLE(ENTRY):
     GALAXY_RAD_EFF_3p6 = Key('galaxy_rad_eff_3.6-micron', KEY_TYPES.NUMERIC)
     GALAXY_VEL_DISP = Key('galaxy_vel_disp', KEY_TYPES.NUMERIC)
     GALAXY_MASS_TO_LIGHT_RATIO = Key('mass_to_light', KEY_TYPES.NUMERIC)
+
+    FWHM_HBETA = Key('fwhm_hbeta', KEY_TYPES.NUMERIC)
+    FWHM_MGII = Key('fwhm_mgii', KEY_TYPES.NUMERIC)
+    FWHM_CIV = Key('fwhm_civ', KEY_TYPES.NUMERIC)
 
     # Boolean Types
     # String Types
@@ -79,3 +83,7 @@ class BH_MASS_METHODS:
     DYN_GAS = "dynamics (gas)"
     DYN_MODELS = "dynamics (three-integral models)"
     REVERB_MAP = "reverberation mapping"
+    VIR_HBETA = "virial (H-Beta)"
+    VIR_MGII = "virial (Mg-II)"
+    VIR_CIV = "virial (C-IV)"
+    VIR = "virial"
