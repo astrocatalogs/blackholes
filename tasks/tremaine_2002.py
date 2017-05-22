@@ -4,21 +4,13 @@ http://adsabs.harvard.edu/abs/2002ApJ...574..740T
 Table 1, manually copied to file 'blackholes/input/internal/tremaine+2002.txt'.
 
 """
-import logging
 import os
 import csv
-import re
-import bs4
-from bs4 import BeautifulSoup
-import astropy as ap
-import astropy.constants
 import tqdm
 
 from astrocats.catalog import utils
-from astrocats.catalog.source import SOURCE
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
-from astrocats.catalog.utils import dict_to_pretty_string
 
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
@@ -137,15 +129,13 @@ def do_tremaine_2002(catalog):
     """
     """
     log = catalog.log
-    log.debug("do_mcconnell_ma()")
+    log.debug("tremaine_2002.do_tremaine_2002()")
     task_str = catalog.get_current_task_str()
     task_name = catalog.current_task.name
     task_dir = catalog.get_current_task_repo()
 
     # Go through each element of the tables
-    interval = 16
     num = 0
-    entries = 0
 
     data_fname = os.path.join(task_dir, DATA_FILENAME)
     log.info("Input filename '{}'".format(data_fname))
@@ -192,7 +182,7 @@ def _add_entry_for_data_line(catalog, line):
 
     """
     log = catalog.log
-    log.debug("tremaine2002._add_entry_for_data_line()")
+    log.debug("tremaine_2002._add_entry_for_data_line()")
     if len(line) != 9:
         log.warning("length of line: '{}', expected 9!  '{}'".format(len(line), line))
         return None

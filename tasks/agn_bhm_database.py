@@ -10,15 +10,9 @@ In normal mode, AGN entries are loaded from URLs, saved to cached files (`catalo
 In archive mode, the cached files are loaded.
 
 """
-import logging
-import os
 import re
-import bs4
 from bs4 import BeautifulSoup
 import numpy as np
-import astropy as ap
-import astropy.constants
-import sys
 
 from astrocats.catalog import utils
 from astrocats.catalog.photometry import PHOTOMETRY
@@ -44,7 +38,7 @@ def do_agn_bhm_database(catalog):
     log = catalog.log
     log.debug("do_agn_bhm_database()")
     task_str = catalog.get_current_task_str()
-    task_name = catalog.current_task.name
+    # task_name = catalog.current_task.name
     # Load data from URL or cached copy of it
     cached_path = SOURCE_BIBCODE + '.txt'
     html = catalog.load_url(DATA_URL, cached_path, fail=True)
@@ -69,7 +63,6 @@ def do_agn_bhm_database(catalog):
     full_table = soup.find('table', attrs={'class': 'hovertable'})
     # Each line in the file is separated with `'tr'`
     div_lines = full_table.find_all('tr')
-    num_div_lines = len(div_lines)
 
     # Go through each element of the tables
     entries = 0
@@ -191,7 +184,9 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     if len(cells):
         in_aliases = cells.pop(0)
         in_aliases = [cc.strip() for cc in in_aliases.split('\u2003')]
-        aliases = [catalog.entries[name].add_alias(cc, source) for cc in in_aliases]
+        # aliases = [catalog.entries[name].add_alias(cc, source) for cc in in_aliases]
+        for cc in in_aliases:
+            catalog.entries[name].add_alias(cc, source)
 
         if len(cells):
             _warn(catalog, "`cells` still not empty! '{}'".format(cells), line, name)
@@ -268,7 +263,7 @@ def _load_blackhole_subpage_data(catalog, name, varname, source):
                     catalog.entries[name].add_photometry(**photo_kwargs)
 
             elif childs[9].text.strip() != '...':
-                raise ValueError("Unexpected value in `childs[9]` = '{}'.".format(chils[9]))
+                raise ValueError("Unexpected value in `childs[9]` = '{}'.".format(childs[9]))
 
     # Cut down to unique sources
     source_urls, inds = np.unique(source_urls, return_index=True)

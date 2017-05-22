@@ -28,13 +28,23 @@
         "repo": "input/external",
         "priority": 10
     },
-    "tremaine2002": {
+    "tremaine_2002": {
         "nice_name": "%pre Tremaine et al. 2002",
         "active": true,
         "update": false,
         "archived": true,
-        "module": "blackholes.tasks.tremaine2002",
+        "module": "blackholes.tasks.tremaine_2002",
         "function": "do_tremaine_2002",
+        "repo": "input/internal",
+        "priority": 10
+    },
+    "shen_2008": {
+        "nice_name": "%pre Shen et al. 2008",
+        "active": true,
+        "update": false,
+        "archived": true,
+        "module": "blackholes.tasks.shen_2008",
+        "function": "do_shen_2008",
         "repo": "input/internal",
         "priority": 10
     },
