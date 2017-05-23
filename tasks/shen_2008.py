@@ -12,7 +12,6 @@ TABLE 1
 Catalog Format
 Column Format Description
 
-
  0 ......................  A18    SDSS DR5 designation hhmmss.ss+ddmmss.s (J2000.0)
  1 ......................  F11.6  Right ascension in decimal degrees (J2000.0)
  2 ......................  F11.6  Declination in decimal degrees (J2000.0)
@@ -90,6 +89,53 @@ DATA_FILENAME = "shen+2008.tsv"
 EXPECTED_TOTAL = 77430
 # Note that the VizieR table has 3 additional columns at the end relative to Table 1 descriptions
 NUM_COLUMNS = 30
+JOURNAL_INTERNAL = 1000
+
+
+'''
+def do_vizier(catalog):
+    """
+    """
+    import Vizier
+    task_str = catalog.get_current_task_str()
+
+    Vizier.ROW_LIMIT = -1
+    Vizier.VIZIER_SERVER = 'vizier.cfa.harvard.edu'
+
+    # 2008MNRAS.384..107E
+    results = Vizier.get_catalogs(['J/ApJ/680/169/table1'])
+    for ti, table in enumerate(results):
+        table.convert_bytestring_to_unicode(python3_only=True)
+        (name, source) = catalog.new_entry(
+            'SN2002cv', bibcode='2008MNRAS.384..107E')
+        for row in pbar(table, task_str):
+            row = convert_aq_output(row)
+            bands = [
+                x for x in row if x.endswith('mag') and not x.startswith('e_')
+            ]
+            for bandtag in bands:
+                band = bandtag.replace('mag', '')
+                if (bandtag in row and is_number(row[bandtag]) and
+                        not isnan(float(row[bandtag]))):
+                    photodict = {
+                        PHOTOMETRY.TIME: jd_to_mjd(Decimal(str(row['JD']))),
+                        PHOTOMETRY.U_TIME: 'MJD',
+                        PHOTOMETRY.BAND: band,
+                        PHOTOMETRY.MAGNITUDE: row[bandtag],
+                        PHOTOMETRY.SOURCE: source,
+                        PHOTOMETRY.INSTRUMENT: row['Inst']
+                    }
+                    if ti == 2:
+                        photodict[PHOTOMETRY.SCORRECTED] = True
+                    if row.get('l_' + bandtag, '') in ['>', '>=']:
+                        photodict[PHOTOMETRY.UPPER_LIMIT] = True
+                    else:
+                        if ('e_' + bandtag) in row:
+                            photodict[PHOTOMETRY.E_MAGNITUDE] = row['e_' +
+                                                                    bandtag]
+                    catalog.entries[name].add_photometry(**photodict)
+    catalog.journal_entries()
+'''
 
 
 def do_shen_2008(catalog):
@@ -128,11 +174,21 @@ def do_shen_2008(catalog):
                 if bh_name is not None:
                     log.debug("{}: added '{}'".format(task_name, bh_name))
                     num += 1
-                    # log.warning(dict_to_pretty_string(catalog.entries[bh_name]))
+
+                    if (JOURNAL_INTERNAL is not None) and (num % JOURNAL_INTERNAL == 0):
+                        catalog.journal_entries()
+
+                    if catalog.args.travis and (num > catalog.TRAVIS_QUERY_LIMIT):
+                        log.warning("Exiting on travis limit")
+                        break
 
                 pbar.update(1)
 
     log.info("Added {} entries".format(num))
+    if (num != EXPECTED_TOTAL) and (not catalog.args.travis):
+        log.warning("Number of entries added {} does not match expectation {}!".format(
+            num, EXPECTED_TOTAL))
+
     return
 
 
@@ -181,7 +237,7 @@ def _add_entry_for_data_line(catalog, line):
 
     """
     log = catalog.log
-    log.debug("shen_2008._add_entry_for_data_line()")
+    # log.debug("shen_2008._add_entry_for_data_line()")
     if len(line) != NUM_COLUMNS:
         log.warning("length of line: '{}', expected {}!  '{}'".format(
             len(line), NUM_COLUMNS, line))
@@ -196,6 +252,9 @@ def _add_entry_for_data_line(catalog, line):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=False)
+
+    task_name = catalog.current_task.name
+    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
 
     # [1/2] RA/DEC
     catalog.entries[name].add_quantity(BLACKHOLE.RA, line[1], source)
@@ -305,7 +364,8 @@ def _add_entry_for_data_line(catalog, line):
     # [23] Mass from optimal line (based on redshift)
     val = line[23]
     if len(val):
-        desc = "Virial BH-Mass Using H-Beta for z < 0.7; Mg-ii for 0.7 < z < 1.9; and C-iv for z > 1.9"
+        desc = ("Virial BH-Mass Using H-Beta for z < 0.7; "
+                "Mg-ii for 0.7 < z < 1.9; and C-iv for z > 1.9")
         quant_kwargs = {QUANTITY.U_VALUE: 'log(M/Msol)',
                         QUANTITY.DESCRIPTION: desc,
                         QUANTITY.KIND: BH_MASS_METHODS.VIR}

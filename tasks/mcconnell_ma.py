@@ -43,6 +43,8 @@ METHOD_DICT = {
     "gas": BH_MASS_METHODS.DYN_GAS,
 }
 
+EXPECTED_ENTRIES = 96
+
 
 def do_mcconnell_ma(catalog):
     """
@@ -67,17 +69,17 @@ def do_mcconnell_ma(catalog):
     # Go through each element of the tables
     interval = 16
     num = 0
-    entries = 0
+    table_entries = 0
     added = 0
 
-    with tqdm.tqdm(desc=task_str, total=100, dynamic_ncols=True) as pbar:
+    with tqdm.tqdm(desc=task_str, total=EXPECTED_ENTRIES, dynamic_ncols=True) as pbar:
 
         while num < num_div_lines:
             div = div_lines[num]
 
             # Find each row of the table (starts with class='psdg-left')
             if ('class' in div.attrs) and ('psdg-left' in div['class']):
-                entries += 1
+                table_entries += 1
                 bh_name = _add_entry_for_data_lines(catalog, div_lines[num:num+interval])
                 if bh_name is not None:
                     log.debug("{}: added '{}'".format(task_name, bh_name))
@@ -85,10 +87,16 @@ def do_mcconnell_ma(catalog):
                     pbar.update(interval-1)
                     added += 1
 
+                    if catalog.args.travis and (added > catalog.TRAVIS_QUERY_LIMIT):
+                        log.warning("Exiting on travis limit")
+                        break
+
             num += 1
             pbar.update(1)
 
-    log.info("Added {} ({} entries)".format(added, entries))
+    log.info("Added {} ({} table) entries".format(added, table_entries))
+    if added != EXPECTED_ENTRIES:
+        log.warning("Found {} entries, expected {}!".format(added, EXPECTED_ENTRIES))
     return
 
 
@@ -159,6 +167,9 @@ def _add_entry_for_data_lines(catalog, lines):
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME,
         secondary=True, derive_parameters=False)
+
+    task_name = catalog.current_task.name
+    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:

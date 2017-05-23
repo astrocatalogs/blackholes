@@ -38,7 +38,6 @@ def do_agn_bhm_database(catalog):
     log = catalog.log
     log.debug("do_agn_bhm_database()")
     task_str = catalog.get_current_task_str()
-    # task_name = catalog.current_task.name
     # Load data from URL or cached copy of it
     cached_path = SOURCE_BIBCODE + '.txt'
     html = catalog.load_url(DATA_URL, cached_path, fail=True)
@@ -78,6 +77,10 @@ def do_agn_bhm_database(catalog):
             if name is not None:
                 entries += 1
 
+                if catalog.args.travis and (entries > catalog.TRAVIS_QUERY_LIMIT):
+                    log.warning("Exiting on travis limit")
+                    break
+
     return True
 
 
@@ -114,6 +117,8 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
+    task_name = catalog.current_task.name
+    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
 
     # Get data from blackhole-specific subpage
     # ----------------------------------------

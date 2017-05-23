@@ -155,6 +155,10 @@ def do_tremaine_2002(catalog):
                     log.debug("{}: added '{}'".format(task_name, bh_name))
                     num += 1
 
+                    if catalog.args.travis and (num > catalog.TRAVIS_QUERY_LIMIT):
+                        log.warning("Exiting on travis limit")
+                        break
+
                 pbar.update(1)
 
     log.info("Added {} entries".format(num))
@@ -201,6 +205,9 @@ def _add_entry_for_data_line(catalog, line):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
+
+    task_name = catalog.current_task.name
+    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:
