@@ -4,6 +4,7 @@ import os
 import re
 
 from astrocats.catalog.catalog import Catalog
+from astrocats.catalog import utils
 from .blackhole import Blackhole
 from . production import blackhole_director
 
@@ -27,7 +28,9 @@ class BlackholeCatalog(Catalog):
     ]
 
     TRAVIS_QUERY_LIMIT = 10
-    RAISE_ERROR_ON_ADDITION_FAILURE = True
+    # Set behavior for when adding a quantity (photometry, source, etc) fails
+    #    Options are 'IGNORE', 'WARN', 'RAISE' (see `utils.imports`)
+    ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
 
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
