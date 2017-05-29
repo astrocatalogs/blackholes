@@ -86,7 +86,7 @@ SOURCE_URL = "http://adsabs.harvard.edu/abs/2008ApJ...680..169S"
 #               "{'SBbc', 'E5', 'E4', 'Sbc', 'E3', 'Sb', 'E1', 'S0', 'E2', 'E0', 'SB0'}.")
 
 DATA_FILENAME = "shen+2008.tsv"
-EXPECTED_TOTAL = 77430
+EXPECTED_TOTAL = 77429
 # Note that the VizieR table has 3 additional columns at the end relative to Table 1 descriptions
 NUM_COLUMNS = 30
 JOURNAL_INTERNAL = 1000
