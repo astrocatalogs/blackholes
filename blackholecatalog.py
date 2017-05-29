@@ -5,7 +5,7 @@ import re
 
 from astrocats.catalog.catalog import Catalog
 from astrocats.catalog import utils
-from .blackhole import Blackhole
+from .blackhole import Blackhole, BLACKHOLE
 from . production import blackhole_director
 
 
@@ -31,6 +31,14 @@ class BlackholeCatalog(Catalog):
     # Set behavior for when adding a quantity (photometry, source, etc) fails
     #    Options are 'IGNORE', 'WARN', 'RAISE' (see `utils.imports`)
     ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
+
+    _EVENT_HTML_COLUMNS_CUSTOM = {
+        BLACKHOLE.MASS: ["BH Mass", 1.1],
+        BLACKHOLE.ACTIVITY: ["AGN Activity", 1.2],
+        BLACKHOLE.GALAXY_MORPHOLOGY: ["Galaxy Morphology", 102],
+        BLACKHOLE.GALAXY_MASS_BULGE: ["Galaxy Bulge Mass", 103],
+        BLACKHOLE.GALAXY_VEL_DISP_BULGE: ["Galaxy Vel. Disp.", 104],
+    }
 
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
