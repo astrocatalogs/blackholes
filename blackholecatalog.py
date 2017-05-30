@@ -33,11 +33,12 @@ class BlackholeCatalog(Catalog):
     ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
 
     _EVENT_HTML_COLUMNS_CUSTOM = {
-        BLACKHOLE.MASS: ["BH Mass", 1.1],
+        BLACKHOLE.MASS: ["BH Mass [log(Msol)]", 1.1],
         BLACKHOLE.ACTIVITY: ["AGN Activity", 1.2],
         BLACKHOLE.GALAXY_MORPHOLOGY: ["Galaxy Morphology", 102],
         BLACKHOLE.GALAXY_MASS_BULGE: ["Galaxy Bulge Mass", 103],
-        BLACKHOLE.GALAXY_VEL_DISP_BULGE: ["Galaxy Vel. Disp.", 104],
+        BLACKHOLE.GALAXY_LUMINOSITY_BULGE: ["Galaxy Bulge Lum [Lsol]", 104],
+        BLACKHOLE.GALAXY_VEL_DISP_BULGE: ["Galaxy Vel. Disp. [km/s]", 105],
     }
 
     class PATHS(Catalog.PATHS):
