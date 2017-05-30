@@ -9,6 +9,7 @@ import re
 import bs4
 import tqdm
 
+from astrocats.catalog import utils
 from astrocats.catalog.source import SOURCE
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
@@ -84,7 +85,7 @@ def do_mcconnell_ma(catalog):
                 if bh_name is not None:
                     log.debug("{}: added '{}'".format(task_name, bh_name))
                     num += interval-1
-                    pbar.update(interval-1)
+                    pbar.update(1)
                     added += 1
 
                     if catalog.args.travis and (added > catalog.TRAVIS_QUERY_LIMIT):
@@ -92,7 +93,7 @@ def do_mcconnell_ma(catalog):
                         break
 
             num += 1
-            pbar.update(1)
+            # pbar.update(1)
 
     log.info("Added {} ({} table) entries".format(added, table_entries))
     if added != EXPECTED_ENTRIES:
@@ -184,6 +185,9 @@ def _add_entry_for_data_lines(catalog, lines):
     err_lo, err_hi = error.split(',')
     err_lo += exp
     err_hi += exp
+    # Convert from normal values/errors to log-space, preserve sig-figs
+    bh_mass, err_lo, err_hi = utils.convert_pm_errors_lin_to_log(bh_mass, err_lo, err_hi)
+
     # Line '15' has the reference[s] for the mass
     # refs = [rr['href'] for rr in lines[15].contents if isinstance(rr, bs4.element.Tag)]
     urls = []
@@ -298,6 +302,9 @@ def _add_entry_for_data_lines(catalog, lines):
         if err is not None:
             photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
         catalog.entries[name].add_photometry(**photo_kwargs)
+
+    # print(utils.dict_to_pretty_string(catalog.entries[name]))
+    # import sys; sys.exit(45)
 
     return name
 
