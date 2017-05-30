@@ -186,7 +186,7 @@ def _add_entry_for_data_lines(catalog, lines):
     err_lo += exp
     err_hi += exp
     # Convert from normal values/errors to log-space, preserve sig-figs
-    bh_mass, err_lo, err_hi = utils.convert_pm_errors_lin_to_log(bh_mass, err_lo, err_hi)
+    bh_mass, (err_lo, err_hi) = utils.convert_lin_to_log(bh_mass, [err_lo, err_hi])
 
     # Line '15' has the reference[s] for the mass
     # refs = [rr['href'] for rr in lines[15].contents if isinstance(rr, bs4.element.Tag)]
@@ -217,7 +217,7 @@ def _add_entry_for_data_lines(catalog, lines):
     method = lines[14].text.strip()
     mass_desc = "BH Mass with one-sigma errors.  Method: '{}'".format(method)
     method = _parse_method(method)
-    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESCRIPTION: mass_desc,
+    quant_kwargs = {QUANTITY.U_VALUE: 'log(M/Msol)', QUANTITY.DESCRIPTION: mass_desc,
                     QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi,
                     QUANTITY.KIND: method}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bh_mass, use_sources, **quant_kwargs)
@@ -226,17 +226,21 @@ def _add_entry_for_data_lines(catalog, lines):
     # -------------------------------------------
     cell_data = [
         # Quantity-Key               line-num, unit,        desc
-        [BLACKHOLE.GALAXY_VEL_DISP_BULGE, 2, 'km/s', "Host, bulge velocity dispersion"],
-        [BLACKHOLE.GALAXY_MASS_BULGE, 7, 'Msol', "Mass of the host's bulge"],
-        [BLACKHOLE.GALAXY_RAD_EFF_V, 9, 'arcsec', None],
-        [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec', None],
-        [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec', None],
-        [BLACKHOLE.DISTANCE, 12, 'Mpc', None],
+        [BLACKHOLE.GALAXY_VEL_DISP_BULGE, 2, 'km/s'],
+        [BLACKHOLE.GALAXY_MASS_BULGE, 7, 'log(Msol)'],
+        [BLACKHOLE.GALAXY_RAD_EFF_V, 9, 'arcsec'],
+        [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec'],
+        [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec'],
+        [BLACKHOLE.DISTANCE, 12, 'Mpc'],
     ]
-    for key, num, unit, desc in cell_data:
+    for key, num, unit in cell_data:
+        # These `err` are always `None`
         val, err = _get_value_and_error(lines[num].text)
         if val is not None:
-            quant_kwargs = {QUANTITY.U_VALUE: unit, QUANTITY.DESCRIPTION: desc}
+            # Convert to log(Msol)
+            if key == BLACKHOLE.GALAXY_MASS_BULGE:
+                val = utils.convert_lin_to_log(val)
+            quant_kwargs = {QUANTITY.U_VALUE: unit}
             catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
 
     # Galaxy morphology
@@ -256,7 +260,7 @@ def _add_entry_for_data_lines(catalog, lines):
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)',
+            PHOTOMETRY.U_LUMINOSITY: 'Log(L/Lsol)',
             PHOTOMETRY.DESCRIPTION: 'Bulge v-band Luminosity',
             PHOTOMETRY.BAND: 'v'
         }
@@ -282,7 +286,7 @@ def _add_entry_for_data_lines(catalog, lines):
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
-            PHOTOMETRY.U_LUMINOSITY: 'Log(Lsun)',
+            PHOTOMETRY.U_LUMINOSITY: 'Log(L/Lsol)',
             PHOTOMETRY.DESCRIPTION: 'Bulge 3.6 micron Luminosity',
             PHOTOMETRY.WAVELENGTH: 3.6, PHOTOMETRY.U_WAVELENGTH: 'micron'
         }

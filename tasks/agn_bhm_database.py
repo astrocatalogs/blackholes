@@ -156,7 +156,7 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
             bh_mass, err = [re.sub(r'[ ()+-]', r'', mm) for mm in bh_mass]
             # Split into higher and lower errors
             err_hi, err_lo = err.split('/')
-            quant_kwargs = {QUANTITY.U_VALUE: 'log(Msol)', QUANTITY.DESCRIPTION: mass_desc,
+            quant_kwargs = {QUANTITY.U_VALUE: 'log(M/Msol)', QUANTITY.DESCRIPTION: mass_desc,
                             QUANTITY.E_LOWER_VALUE: err_lo, QUANTITY.E_UPPER_VALUE: err_hi,
                             QUANTITY.KIND: BH_MASS_METHODS.REVERB_MAP}
             catalog.entries[name].add_quantity(
@@ -180,9 +180,6 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     redz = cells.pop(0)
     catalog.entries[name].add_quantity(BLACKHOLE.REDSHIFT, redz, source)
 
-    # catalog.log.warning(utils.dict_to_pretty_string(catalog.entries[name]))
-    # sys.exit(23232)
-
     # Add alias of name, if given
     # ---------------------------
     # Sometimes none, sometimes multiple (separated by '\u2003')
@@ -195,6 +192,9 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
 
         if len(cells):
             _warn(catalog, "`cells` still not empty! '{}'".format(cells), line, name)
+
+    # catalog.log.warning(utils.dict_to_pretty_string(catalog.entries[name]))
+    # sys.exit(23232)
 
     return name
 

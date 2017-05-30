@@ -249,9 +249,11 @@ def _add_entry_for_data_line(catalog, line):
     # [3] BH Mass (and method [4])
     # ----------------------------
     bhm, bhm_lo, bhm_hi = _get_mass_value_and_error(line[3])
+    # Convert to log Msol, and convert from error interval to plus/minus errors
+    bhm, (bhm_lo, bhm_hi) = utils.convert_lin_to_log(bhm, [bhm_lo, bhm_hi], error_interval=True)
     mass_method, method_desc = _parse_mass_method(line[4])
     mass_desc = "BH Mass with one-sigma errors.  Method(s): '{}'".format(method_desc)
-    quant_kwargs = {QUANTITY.U_VALUE: 'Msol', QUANTITY.DESCRIPTION: mass_desc,
+    quant_kwargs = {QUANTITY.U_VALUE: 'log(M/Msol)', QUANTITY.DESCRIPTION: mass_desc,
                     QUANTITY.E_LOWER_VALUE: bhm_lo, QUANTITY.E_UPPER_VALUE: bhm_hi,
                     QUANTITY.KIND: mass_method}
     catalog.entries[name].add_quantity(BLACKHOLE.MASS, bhm, use_sources, **quant_kwargs)
@@ -281,6 +283,9 @@ def _add_entry_for_data_line(catalog, line):
         quant_kwargs = {QUANTITY.DESCRIPTION: "In band: '{}'".format(band)}
         catalog.entries[name].add_quantity(
             BLACKHOLE.GALAXY_MASS_TO_LIGHT_RATIO, ratio, source, **quant_kwargs)
+
+    # print(utils.dict_to_pretty_string(catalog.entries[name]))
+    # import sys; sys.exit(45)
 
     return name
 
@@ -321,7 +326,7 @@ def _get_mass_value_and_error(raw):
     """
     val, err = raw.split('(')
     err_lo, err_hi = err.split(',')
-    err_hi.strip(')')
+    err_hi = err_hi.strip(')')
     exp = "e" + val.split('e')[-1]
     err_lo += exp
     err_hi += exp
