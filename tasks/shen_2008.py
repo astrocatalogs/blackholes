@@ -57,22 +57,11 @@ Notes:
     for guidance regarding its form and content.
 
 """
-# import logging
 import os
-# import sys
 import csv
-# import re
-# import bs4
-# from bs4 import BeautifulSoup
-# import astropy as ap
-# import astropy.constants
 import tqdm
 
-# import astropy as ap
-# import astropy.time  # noqa
-
 from astrocats.catalog import utils
-# from astrocats.catalog.source import SOURCE
 from astrocats.catalog.quantity import QUANTITY
 from astrocats.catalog.photometry import PHOTOMETRY
 # from astrocats.catalog.utils import dict_to_pretty_string
@@ -82,8 +71,6 @@ from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 SOURCE_BIBCODE = "2008ApJ...680..169S"
 SOURCE_NAME = "Shen+2008"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2008ApJ...680..169S"
-# MORPH_DESC = ("Galaxy morphologies are one of:"
-#               "{'SBbc', 'E5', 'E4', 'Sbc', 'E3', 'Sb', 'E1', 'S0', 'E2', 'E0', 'SB0'}.")
 
 DATA_FILENAME = "shen+2008.tsv"
 EXPECTED_TOTAL = 77429
@@ -364,7 +351,7 @@ def _add_entry_for_data_line(catalog, line):
     # [23] Mass from optimal line (based on redshift)
     val = line[23]
     if len(val):
-        desc = ("Virial BH-Mass Using H-Beta for z < 0.7; "
+        desc = ("Virial BH-Mass Using H-Beta for z < 0.7; "
                 "Mg-ii for 0.7 < z < 1.9; and C-iv for z > 1.9")
         quant_kwargs = {QUANTITY.U_VALUE: 'log(M/Msol)',
                         QUANTITY.DESCRIPTION: desc,
