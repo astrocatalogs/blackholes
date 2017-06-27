@@ -3,11 +3,14 @@
 http://blackhole.berkeley.edu/
 See: http://adsabs.harvard.edu/abs/2013ApJ...764..184M
 
-Data exists in a single online table.  That data is cached locally in 'blackholes/input/external/'.
+Data exists in a single online table.  That data is cached locally in
+    'blackholes/input/external/2013ApJ...764..184M.txt'
+
 """
 import re
 import bs4
 import tqdm
+import sys
 
 from astrocats.catalog import utils
 from astrocats.catalog.source import SOURCE
@@ -44,7 +47,7 @@ METHOD_DICT = {
     "gas": BH_MASS_METHODS.DYN_GAS,
 }
 
-EXPECTED_ENTRIES = 96
+EXPECTED_ENTRIES = 97
 
 
 def do_mcconnell_ma(catalog):
@@ -162,6 +165,7 @@ def _add_entry_for_data_lines(catalog, lines):
     # At the end of the table, there is a blank row, return None in that case
     if not len(data_name):
         return None
+
     name = catalog.add_entry(data_name)
 
     # Add this source
@@ -179,7 +183,7 @@ def _add_entry_for_data_lines(catalog, lines):
     # BH Mass, looks like "  3.9 (0.4,0.6) e9"
     # ----------------------------------------
     mass_line = lines[1].text.strip()
-    bh_mass, error, exp = re.search('(.*) \((.*)\) e([0-9])', mass_line).groups()
+    bh_mass, error, exp = re.search('(.*) \((.*)\) e([0-9]*)', mass_line).groups()
     exp = 'e' + exp
     bh_mass += exp
     err_lo, err_hi = error.split(',')
@@ -197,7 +201,8 @@ def _add_entry_for_data_lines(catalog, lines):
             urls.append(ll['href'])
             names.append(ll.text.strip())
     # If references are found, add them to this paper (McConnell & Ma)
-    use_sources = [source]
+    # use_sources = [source]
+    use_sources = []
     if len(urls):
         for uu, nn in zip(urls, names):
             src_kw = {SOURCE.URL: uu, SOURCE.NAME: nn}
@@ -210,6 +215,9 @@ def _add_entry_for_data_lines(catalog, lines):
 
             new_src = catalog.entries[name].add_source(**src_kw)
             use_sources.append(new_src)
+    if len(use_sources) == 0:
+        use_sources.append(source)
+
     # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
     use_sources = ",".join(str(src) for src in use_sources)
 
@@ -234,17 +242,30 @@ def _add_entry_for_data_lines(catalog, lines):
         [BLACKHOLE.DISTANCE, 12, 'Mpc'],
     ]
     for key, num, unit in cell_data:
-        # These `err` are always `None`
-        val, err = _get_value_and_error(lines[num].text)
+        val, err, src_kw = _get_value_and_error(lines[num])
         if val is not None:
             # Convert to log(Msol)
             if key == BLACKHOLE.GALAXY_MASS_BULGE:
+                old_val = val
                 val = utils.convert_lin_to_log(val)
+                if err is not None:
+                    err = utils.convert_lin_to_log(err)
+                    sys.exit(3543)
             quant_kwargs = {QUANTITY.U_VALUE: unit}
-            catalog.entries[name].add_quantity(key, val, source, **quant_kwargs)
+            if err is not None:
+                quant_kwargs[QUANTITY.E_VALUE] = err
+            # Add source if one is found
+            if src_kw is not None:
+                new_src = catalog.entries[name].add_source(**src_kw)
+            else:
+                new_src = source
+
+            catalog.entries[name].add_quantity(key, val, new_src, **quant_kwargs)
 
     # Galaxy morphology
-    val, err = _get_value_and_error(lines[13].text)
+    val, err, src_kw = _get_value_and_error(lines[13])
+    if src_kw is not None:
+        catalog.log.error_raise("ERROR")
     if val is None:
         raise RuntimeError("Could not get morphology from column 13: '{}'".format(lines[13].text))
     morph, desc = _parse_morphology(val)
@@ -256,7 +277,9 @@ def _add_entry_for_data_lines(catalog, lines):
     catalog.entries[name].add_quantity(BLACKHOLE.GALAXY_MORPHOLOGY, morph, source, **quant_kwargs)
 
     # [3] Bulge Luminosity v-band
-    val, err = _get_value_and_error(lines[3].text, cast=float)
+    val, err, src_kw = _get_value_and_error(lines[3], cast=float)
+    if src_kw is not None:
+        catalog.log.error_raise("ERROR")
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
@@ -269,7 +292,9 @@ def _add_entry_for_data_lines(catalog, lines):
         catalog.entries[name].add_photometry(**photo_kwargs)
 
     # [4] Bulge Magnitude v-band
-    val, err = _get_value_and_error(lines[4].text, cast=float)
+    val, err, src_kw = _get_value_and_error(lines[4], cast=float)
+    if src_kw is not None:
+        catalog.log.error_raise("ERROR")
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.MAGNITUDE: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
@@ -282,7 +307,9 @@ def _add_entry_for_data_lines(catalog, lines):
         catalog.entries[name].add_photometry(**photo_kwargs)
 
     # [5] Bulge Luminosity 3.6 micron
-    val, err = _get_value_and_error(lines[5].text, cast=float)
+    val, err, src_kw = _get_value_and_error(lines[5], cast=float)
+    if src_kw is not None:
+        catalog.log.error_raise("ERROR")
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.LUMINOSITY: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
@@ -295,7 +322,9 @@ def _add_entry_for_data_lines(catalog, lines):
         catalog.entries[name].add_photometry(**photo_kwargs)
 
     # [6] Bulge Magnitude 3.6 micron
-    val, err = _get_value_and_error(lines[6].text, cast=float)
+    val, err, src_kw = _get_value_and_error(lines[6], cast=float)
+    if src_kw is not None:
+        catalog.log.error_raise("ERROR")
     if val is not None:
         photo_kwargs = {
             PHOTOMETRY.MAGNITUDE: val, PHOTOMETRY.SOURCE: source, PHOTOMETRY.HOST: True,
@@ -307,27 +336,33 @@ def _add_entry_for_data_lines(catalog, lines):
             photo_kwargs[PHOTOMETRY.E_LUMINOSITY] = err
         catalog.entries[name].add_photometry(**photo_kwargs)
 
-    # print(utils.dict_to_pretty_string(catalog.entries[name]))
-    # import sys; sys.exit(45)
-
     return name
 
 
-def _get_value_and_error(line, cast=None):
+def _get_value_and_error(line_tag, cast=None):
+    """From a line of the BH table, extract the value given and an error and/or reference if given.
+
+    Returns
+    -------
+    value : str
+    err : str or None
+    src_kw : dict or None
+
+    """
     val = None
     err = None
 
-    line = line.strip()
-    if line == '-' or line == '--':
-        return None, None
+    line_text = line_tag.text.strip()
+    if line_text == '-' or line_text == '--':
+        return None, None, None
 
-    line = [ll.strip() for ll in line.split('±')]
-    if len(line) == 2:
-        val, err = line
-    elif len(line) == 1 and len(line[0]):
-        val = line[0]
+    line_text = [ll.strip() for ll in line_text.split('±')]
+    if len(line_text) == 2:
+        val, err = line_text
+    elif len(line_text) == 1 and len(line_text[0]):
+        val = line_text[0]
     else:
-        return None, None
+        return None, None, None
 
     # Cast to certain `type`
     if cast is not None:
@@ -336,7 +371,27 @@ def _get_value_and_error(line, cast=None):
         if err is not None:
             err = cast(err)
 
-    return val, err
+    # Extract source if one is included
+    # ---------------------------------
+    src_kw = None
+    for child in line_tag.children:
+        if not isinstance(child, bs4.element.Tag):
+            continue
+
+        if child.name != 'a':
+            continue
+
+        url = child.attrs['href']
+        name = child.attrs['title'].split('Reference: ')[-1]
+        src_kw = {SOURCE.URL: url, SOURCE.NAME: name}
+        # Try to get a bibcode from the URL
+        try:
+            bibcode = url.split('/abs/')[1]
+            src_kw[SOURCE.BIBCODE] = bibcode
+        except:
+            pass
+
+    return val, err, src_kw
 
 
 def _add_quantity_from_line(catalog, name, key, src, line, unit=None, desc=None):
