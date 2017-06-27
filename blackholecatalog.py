@@ -13,6 +13,8 @@ class BlackholeCatalog(Catalog):
     """
     """
 
+    MODULE_NAME = "bh"
+
     _NAME_REPLACEMENT_REGEX = [
         # 'IC ####'    --> 'IC####'
         [r'IC ([0-9]{4})', r'IC\1', None],
