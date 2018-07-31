@@ -12,20 +12,20 @@
         "nice_name": "%pre McConnell & Ma 2013",
         "active": true,
         "update": false,
-        "archived": true,
+        "archived": false,
         "module": "blackholes.tasks.mcconnell_ma",
         "function": "do_mcconnell_ma",
-        "repo": "input/external",
+        "repo": "input/blackholes_input_external",
         "priority": 10
     },
     "agn_bhm_database": {
         "nice_name": "%pre AGN Black Hole Mass Database",
         "active": true,
         "update": false,
-        "archived": true,
+        "archived": false,
         "module": "blackholes.tasks.agn_bhm_database",
         "function": "do_agn_bhm_database",
-        "repo": "input/external",
+        "repo": "input/blackholes_input_external",
         "priority": 10
     },
     "tremaine_2002": {
@@ -35,7 +35,7 @@
         "archived": true,
         "module": "blackholes.tasks.tremaine_2002",
         "function": "do_tremaine_2002",
-        "repo": "input/internal",
+        "repo": "input/blackholes_input_internal",
         "priority": 10
     },
     "shen_2008": {
@@ -45,7 +45,7 @@
         "archived": true,
         "module": "blackholes.tasks.shen_2008",
         "function": "do_shen_2008",
-        "repo": "input/internal",
+        "repo": "input/blackholes_input_internal",
         "priority": 10
     },
     "merge_duplicates": {
