@@ -1,14 +1,15 @@
 {
     "output":[
-        "massive"
+        "stellarmass-black-holes",
+        "supermassive-black-holes"
     ],
     "boneyard":[
         ""
     ],
     "external":[
-        "external"
+        "blackholes_input_external"
     ],
     "internal":[
-        "internal"
+        "blackholes_input_internal"
     ]
 }
