@@ -55,18 +55,40 @@ def do_mcconnell_ma(catalog):
     """
     log = catalog.log
     log.debug("do_mcconnell_ma()")
-    task_str = catalog.get_current_task_str()
-    task_name = catalog.current_task.name
     # Load data from URL or cached copy of it
     cached_path = SOURCE_BIBCODE + '.txt'
     html = catalog.load_url(DATA_URL, cached_path, fail=True)
     if not html:
+        log.raise_error("Failed to load html!")
         return
 
-    soup = bs4.BeautifulSoup(html, 'html5lib')
+    try:
+        parse_old_webpage(catalog, html)
+        return
+    except Exception as err:
+        log.warning("Failed on `parse_old_webpage()`; trying old cached file")
+
+        # This is a manually added backup file of the old webpage.
+        cached_path = "_" + SOURCE_BIBCODE + '.txt'
+        html = catalog.load_url(None, cached_path, fail=True)
+        parse_old_webpage(catalog, html)
+
+    return
+
+
+def parse_old_webpage(catalog, data):
+    log = catalog.log
+    task_str = catalog.get_current_task_str()
+    task_name = catalog.current_task.name
+
+    soup = bs4.BeautifulSoup(data, 'html5lib')
 
     # The whole table is nested in a 'div'
     full_table = soup.find('div', id="psdgraphics-com-table")
+    if full_table is None:
+        # print(soup)
+        log.raise_error("Failed to identify `div`!")
+
     div_lines = full_table.find_all('div')
     num_div_lines = len(div_lines)
 
