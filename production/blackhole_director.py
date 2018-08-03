@@ -3,7 +3,7 @@
 
 from astrocats.catalog.production import director, html_pro
 from astrocats.catalog.utils import dict_to_pretty_string
-from astrocats.catalog import QUANTITY
+from astrocats.catalog.struct import QUANTITY
 from .. blackhole import BLACKHOLE
 
 
