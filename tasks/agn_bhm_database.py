@@ -15,9 +15,8 @@ from bs4 import BeautifulSoup
 import numpy as np
 
 from astrocats.catalog import utils
-from astrocats.catalog.photometry import PHOTOMETRY
-from astrocats.catalog.quantity import QUANTITY
-from astrocats.catalog.source import SOURCE, Source
+from astrocats.catalog.struct import PHOTOMETRY, QUANTITY, SOURCE
+from astrocats.catalog.struct import Source
 
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
@@ -73,7 +72,15 @@ def do_agn_bhm_database(catalog):
         # If no match is found, this is one of the header lines (not an entry line, skip)
         if groups is not None:
             varname = groups.groups()[0]
-            name = _add_entry_for_data_line(catalog, div.text, varname, mass_scale_factor)
+            try:
+                name = _add_entry_for_data_line(catalog, div.text, varname, mass_scale_factor)
+            except Exception:
+                log.error("Failed `_add_entry_for_data_line()`")
+                log.error("`div.text`: '{}'".format(div.text))
+                log.error("`varname`: '{}'".format(varname))
+                raise
+
+
             if name is not None:
                 entries += 1
 
@@ -102,6 +109,7 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     Mrk382 ... 07:55:25.3 +39:11:10 0.03369
 
     """
+    log = catalog.log
     cells = [ll.strip() for ll in line.split('  ') if len(ll.strip())]
     # print(cells, varname)
     if not len(cells):
@@ -117,8 +125,12 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
+    if source is None:
+        err = "Failed to add source!"
+        log.raise_error(err)
+
     task_name = catalog.current_task.name
-    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
+    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Get data from blackhole-specific subpage
     # ----------------------------------------
@@ -135,6 +147,10 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
             if sb is not None:
                 src_kwargs[SOURCE.BIBCODE] = sb
             src = catalog.entries[name].add_source(**src_kwargs)
+            if src is None:
+                log.error("`src_kwargs`: '{}'".format(src_kwargs))
+                err = "Failed to add source!"
+                log.raise_error(err)
             all_sources.append(src)
 
     # Join source-aliases into single string

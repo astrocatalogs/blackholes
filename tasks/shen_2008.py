@@ -62,10 +62,7 @@ import csv
 import tqdm
 
 from astrocats.catalog import utils
-from astrocats.catalog.quantity import QUANTITY
-from astrocats.catalog.photometry import PHOTOMETRY
-# from astrocats.catalog.utils import dict_to_pretty_string
-
+from astrocats.catalog.struct import QUANTITY, PHOTOMETRY
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2008ApJ...680..169S"
@@ -142,7 +139,7 @@ def do_shen_2008(catalog):
     data_fname = os.path.join(task_dir, DATA_FILENAME)
     log.info("Input filename '{}'".format(data_fname))
     if not os.path.exists(data_fname):
-        utils.log_raise(log, "File not found '{}'".format(data_fname), IOError)
+        log.raise_error("File not found '{}'".format(data_fname), IOError)
 
     with tqdm.tqdm(desc=task_str, total=EXPECTED_TOTAL, dynamic_ncols=True) as pbar:
 
@@ -239,9 +236,11 @@ def _add_entry_for_data_line(catalog, line):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=False)
+    if source is None:
+        log.raise_error("Failed to add source!")
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
+    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # [1/2] RA/DEC
     catalog.entries[name].add_quantity(BLACKHOLE.RA, line[1], source)
@@ -282,9 +281,9 @@ def _add_entry_for_data_line(catalog, line):
             PHOTOMETRY.TIME: obs_date,
             PHOTOMETRY.U_TIME: 'MJD',
         }
-        if not catalog.entries[name].add_photometry(**photo_kwargs):
-            utils.log_raise(log, "Adding photometry failed for '{}'\n:{}".format(
-                name, photo_kwargs))
+        catalog.entries[name].add_photometry(**photo_kwargs)
+        # err = "Adding photometry failed for '{}'\n:{}".format(name, photo_kwargs)
+        # log.raise_error(err)
 
     # [6] Luminosity Bolometric
     if len(line[6]):
@@ -299,9 +298,9 @@ def _add_entry_for_data_line(catalog, line):
             PHOTOMETRY.TIME: obs_date,
             PHOTOMETRY.U_TIME: 'MJD',
         }
-        if not catalog.entries[name].add_photometry(**photo_kwargs):
-            utils.log_raise(log, "Adding photometry failed for '{}'\n:{}".format(
-                name, photo_kwargs))
+        catalog.entries[name].add_photometry(**photo_kwargs)
+        # err = "Adding photometry failed for '{}'\n:{}".format(name, photo_kwargs)
+        # log.raise_error(err)
 
     # [14-22] FWHM, Mass, and Monochromatic Luminosities by line
     line_names = ["H-Beta", "Mg-II", "C-IV"]
@@ -333,9 +332,9 @@ def _add_entry_for_data_line(catalog, line):
                 PHOTOMETRY.TIME: obs_date,
                 PHOTOMETRY.U_TIME: 'MJD',
             }
-            if not catalog.entries[name].add_photometry(**photo_kwargs):
-                utils.log_raise(log, "Adding photometry failed for '{}' ({}) \n:{}".format(
-                    name, nn, photo_kwargs))
+            catalog.entries[name].add_photometry(**photo_kwargs)
+            # err = "Adding photometry failed for '{}' ({}) \n:{}".format(name, nn, photo_kwargs)
+            # log.raise_error(err)
 
         # Mass from this Line
         col = 16 + ii*3

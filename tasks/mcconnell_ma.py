@@ -13,9 +13,7 @@ import tqdm
 import sys
 
 from astrocats.catalog import utils
-from astrocats.catalog.source import SOURCE
-from astrocats.catalog.quantity import QUANTITY
-from astrocats.catalog.photometry import PHOTOMETRY
+from astrocats.catalog.struct import SOURCE, QUANTITY, PHOTOMETRY
 
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
@@ -172,6 +170,7 @@ def _add_entry_for_data_lines(catalog, lines):
             <a href="http://adsabs.harvard.edu/abs/2009ApJ...690..537D">Dalla Bonta 2009</a></div>
 
     """
+    log = catalog.log
     # Galaxy/BH Name
     # --------------
     # Remove footnotes
@@ -196,7 +195,7 @@ def _add_entry_for_data_lines(catalog, lines):
         secondary=True, derive_parameters=False)
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
+    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:
@@ -260,7 +259,7 @@ def _add_entry_for_data_lines(catalog, lines):
         [BLACKHOLE.GALAXY_MASS_BULGE, 7, 'log(Msol)'],
         [BLACKHOLE.GALAXY_RAD_EFF_V, 9, 'arcsec'],
         [BLACKHOLE.GALAXY_RAD_EFF_I, 10, 'arcsec'],
-        [BLACKHOLE.GALAXY_RAD_EFF_3p6, 11, 'arcsec'],
+        [BLACKHOLE.GALAXY_RAD_EFF_3P6, 11, 'arcsec'],
         [BLACKHOLE.DISTANCE, 12, 'Mpc'],
     ]
     for key, num, unit in cell_data:
@@ -273,9 +272,24 @@ def _add_entry_for_data_lines(catalog, lines):
                 if err is not None:
                     err = utils.convert_lin_to_log(err)
                     sys.exit(3543)
+
             quant_kwargs = {QUANTITY.U_VALUE: unit}
             if err is not None:
-                quant_kwargs[QUANTITY.E_VALUE] = err
+                # See if this is just a float value
+                try:
+                    float(err)
+                    quant_kwargs[QUANTITY.E_VALUE] = err
+                except ValueError:
+                    # try to parse something like: '(26,22)'
+                    try:
+                        err_plus, err_minus = err.strip('()').split(',')
+                        quant_kwargs[QUANTITY.E_UPPER_VALUE] = err_plus
+                        quant_kwargs[QUANTITY.E_LOWER_VALUE] = err_minus
+                    except Exception:
+                        err = "Task: '{}', Entry: '{}' - Failed to parse error value: '{}'".format(
+                            catalog.current_task.name, name, err)
+                        log.warning(err)
+
             # Add source if one is found
             if src_kw is not None:
                 new_src = catalog.entries[name].add_source(**src_kw)

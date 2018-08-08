@@ -9,9 +9,9 @@ import csv
 import tqdm
 
 from astrocats.catalog import utils
-from astrocats.catalog.quantity import QUANTITY
-from astrocats.catalog.photometry import PHOTOMETRY
-
+# from astrocats.catalog.quantity import QUANTITY
+# from astrocats.catalog.photometry import PHOTOMETRY
+from astrocats.catalog.struct import QUANTITY, PHOTOMETRY
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2002ApJ...574..740T"
@@ -205,9 +205,11 @@ def _add_entry_for_data_line(catalog, line):
     # Add this source
     source = catalog.entries[name].add_source(
         url=SOURCE_URL, bibcode=SOURCE_BIBCODE, name=SOURCE_NAME, secondary=True)
+    if source is None:
+        log.raise_error("Adding source failed!")
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_data(BLACKHOLE.TASKS, task_name)
+    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:
@@ -242,6 +244,8 @@ def _add_entry_for_data_line(catalog, line):
             bib_kw['bibcode'] = ref_bib
             bib_kw['url'] = ref_url
         new_src = catalog.entries[name].add_source(**bib_kw)
+        if new_src is None:
+            log.raise_error("Adding src from '{}' failed!".format(bib_kw))
         use_sources.append(new_src)
     # Multiple sources should be comma-delimited string of integers e.g. '1, 3, 4'
     use_sources = ",".join(str(src) for src in use_sources)
@@ -338,6 +342,7 @@ def _parse_refs(val):
     def _get_refs_from_dict(val):
         name = REFS_NAMES[val]
         bib = REFS_BIBS[val]
+        bib = utils.decode_url(bib)
         url = REFS_URLS[val]
         return name, bib, url
 
