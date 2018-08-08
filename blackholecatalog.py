@@ -51,9 +51,6 @@ class BlackholeCatalog(Catalog):
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
 
-    class SCHEMA(Catalog.SCHEMA):
-        pass
-
     def __init__(self, args, log):
         """
         """
