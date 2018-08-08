@@ -342,7 +342,8 @@ def _parse_refs(val):
     def _get_refs_from_dict(val):
         name = REFS_NAMES[val]
         bib = REFS_BIBS[val]
-        bib = utils.decode_url(bib)
+        if bib is not None:
+            bib = utils.decode_url(bib)
         url = REFS_URLS[val]
         return name, bib, url
 
