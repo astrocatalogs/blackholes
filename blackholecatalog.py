@@ -33,6 +33,8 @@ class BlackholeCatalog(Catalog):
     # Set behavior for when adding a quantity (photometry, source, etc) fails
     #    Options are 'IGNORE', 'WARN', 'RAISE' (see `utils.imports`)
     ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
+    # This should be deprecated??
+    RAISE_ERROR_ON_ADDITION_FAILURE = True
 
     _EVENT_HTML_COLUMNS_CUSTOM = {
         BLACKHOLE.MASS: ["Mass [log(<em>M</em><sub>&#9737;</sub>)] [kind]", 1.1],
