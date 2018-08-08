@@ -1,9 +1,26 @@
 """
 """
+import os
+
+import pyastroschema as pas
+
+import astrocats
 from astrocats.catalog.entry import ENTRY, Entry
-from astrocats.catalog.key import KEY_TYPES, Key
+from astrocats.catalog import struct
+from astrocats import blackholes
+# from astrocats.catalog.key import KEY_TYPES, Key
+
+# "...astrocats/blackholes/"
+# temp = os.path.dirname(__file__)
 
 
+PATH_BH_SCHEMA_INPUT = os.path.join(blackholes.PATH_SCHEMA, "input", "")
+print("`PATH_BH_SCHEMA_INPUT` = '{}'".format(PATH_BH_SCHEMA_INPUT))
+
+path_my_blackhole_schema = os.path.join(PATH_BH_SCHEMA_INPUT, "bh_blackhole.json")
+path_astrocats_entry = os.path.join(astrocats._PATH_SCHEMA, "output", "entry.json")
+
+'''
 class BLACKHOLE(ENTRY):
     """KeyCollection for `Blackhole` keys.
 
@@ -42,13 +59,13 @@ class BLACKHOLE(ENTRY):
     # String Types
     ACTIVITY = Key('agn_activity', KEY_TYPES.STRING)
     GALAXY_MORPHOLOGY = Key('galaxy_morphology', KEY_TYPES.STRING, listable=True)
+'''
 
 
+@pas.struct.set_struct_schema(path_astrocats_entry, extensions=[path_my_blackhole_schema])
 class Blackhole(Entry):
     """Single entry in the Blackhole catalog, representing a single Blackhole.
     """
-
-    _KEYS = BLACKHOLE
 
     def __init__(self, catalog, name, stub=False):
         name = catalog.clean_entry_name(name)
@@ -67,6 +84,12 @@ class Blackhole(Entry):
         fname = fname.replace(' ', '_')
         fname = fname.replace('-', '_')
         return fname
+
+
+BLACKHOLE = Blackhole._KEYCHAIN
+Blackhole._KEYS = BLACKHOLE
+
+BLACKHOLE.DISCOVER_DATE = BLACKHOLE.DISCOVERDATE
 
 
 class GALAXY_MORPHS:
