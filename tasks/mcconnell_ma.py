@@ -195,7 +195,7 @@ def _add_entry_for_data_lines(catalog, lines):
         secondary=True, derive_parameters=False)
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
+    # catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:
@@ -228,12 +228,22 @@ def _add_entry_for_data_lines(catalog, lines):
         for uu, nn in zip(urls, names):
             src_kw = {SOURCE.URL: uu, SOURCE.NAME: nn}
             # Try to get a bibcode from the URL
+            bib, arx = _parse_bibcode_arxiv(uu)
+            if bib is not None:
+                src_kw[SOURCE.BIBCODE] = bib
+            if arx is not None:
+                src_kw[SOURCE.ARXIVID] = arx
+            '''
             try:
                 bibcode = uu.split('/abs/')[1]
-                src_kw[SOURCE.BIBCODE] = bibcode
+                spl = bibcode.split('.')
+                if (len(spl) == 2) and (len(spl[0]) == 4):
+                    src_kw[SOURCE.ARXIVID] = bibcode
+                else:
+                    src_kw[SOURCE.BIBCODE] = bibcode
             except:
                 pass
-
+            '''
             new_src = catalog.entries[name].add_source(**src_kw)
             use_sources.append(new_src)
     if len(use_sources) == 0:
@@ -421,12 +431,18 @@ def _get_value_and_error(line_tag, cast=None):
         name = child.attrs['title'].split('Reference: ')[-1]
         src_kw = {SOURCE.URL: url, SOURCE.NAME: name}
         # Try to get a bibcode from the URL
+        bib, arx = _parse_bibcode_arxiv(url)
+        if bib is not None:
+            src_kw[SOURCE.BIBCODE] = bib
+        if arx is not None:
+            src_kw[SOURCE.ARXIVID] = arx
+        '''
         try:
             bibcode = url.split('/abs/')[1]
             src_kw[SOURCE.BIBCODE] = bibcode
         except:
             pass
-
+        '''
     return val, err, src_kw
 
 
@@ -504,3 +520,19 @@ def _parse_method(val):
     method = [METHOD_DICT[vv] for vv in vals]
     method = ", ".join(method)
     return method
+
+
+def _parse_bibcode_arxiv(url):
+    bib = None
+    arx = None
+    try:
+        bibcode = url.split('/abs/')[1]
+        spl = bibcode.split('.')
+        if (len(spl) == 2) and (len(spl[0]) == 4):
+            arx = bibcode
+        else:
+            bib = utils.decode_url(bibcode)
+    except:
+        pass
+
+    return bib, arx

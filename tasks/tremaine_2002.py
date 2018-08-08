@@ -209,7 +209,7 @@ def _add_entry_for_data_line(catalog, line):
         log.raise_error("Adding source failed!")
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
+    # catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Add alias of name, if one was found
     if alias is not None:

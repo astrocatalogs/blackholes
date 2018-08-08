@@ -130,7 +130,7 @@ def _add_entry_for_data_line(catalog, line, varname, mass_scale_factor):
         log.raise_error(err)
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
+    # catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # Get data from blackhole-specific subpage
     # ----------------------------------------

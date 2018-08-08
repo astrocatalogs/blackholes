@@ -240,7 +240,7 @@ def _add_entry_for_data_line(catalog, line):
         log.raise_error("Failed to add source!")
 
     task_name = catalog.current_task.name
-    catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
+    # catalog.entries[name].add_listed(BLACKHOLE.TASKS, task_name)
 
     # [1/2] RA/DEC
     catalog.entries[name].add_quantity(BLACKHOLE.RA, line[1], source)
