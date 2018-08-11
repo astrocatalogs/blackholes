@@ -2,11 +2,14 @@
 """
 import os
 import re
+import shutil
+import glob
 
 from astrocats.catalog.catalog import Catalog
-from astrocats.catalog import utils
+from astrocats.catalog import utils, schema
 from .blackhole import Blackhole, BLACKHOLE
-from . production import blackhole_director
+from .production import blackhole_director
+from . import PATH_BH_SCHEMA
 
 
 class BlackholeCatalog(Catalog):
@@ -48,6 +51,9 @@ class BlackholeCatalog(Catalog):
         BLACKHOLE.FWHM_CIV: ["FWHM C-IV [km/s]", 108],
     }
 
+    STRUCTURES = [Blackhole]
+
+
     class PATHS(Catalog.PATHS):
         PATH_BASE = os.path.abspath(os.path.dirname(__file__))
 
@@ -57,8 +63,11 @@ class BlackholeCatalog(Catalog):
         log.debug("BlackholeCatalog.__init__()")
         # Initialize super `astrocats.catalog.catalog.Catalog` object
         super().__init__(args, log)
+
         self.proto = Blackhole
         self.Director = blackhole_director.Blackhole_Director
+
+        self.prep_schema()
         return
 
     def clone_repos(self):
@@ -79,3 +88,12 @@ class BlackholeCatalog(Catalog):
             name = re.sub(find, replace, name, flags=use_flags)
 
         return name
+
+    def prep_schema(self):
+
+        # print("\n\nBlackholeCatalog.prep_schema()\n\n")
+        # files = [struct._SCHEMA._filename for struct in self.STRUCTURES]
+        pattern = os.path.join(PATH_BH_SCHEMA, "*.json")
+        files = list(sorted(glob.glob(pattern)))
+        schema.main(add_files=files, add_structures=self.STRUCTURES)
+        return
