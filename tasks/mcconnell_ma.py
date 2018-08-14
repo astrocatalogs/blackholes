@@ -15,7 +15,7 @@ import sys
 from astrocats import utils
 from astrocats.structures.struct import SOURCE, QUANTITY, PHOTOMETRY
 
-from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
+from blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2013ApJ...764..184M"
 SOURCE_NAME = "McConnell & Ma 2013"

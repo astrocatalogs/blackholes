@@ -18,7 +18,7 @@ from astrocats import utils
 from astrocats.structures.struct import PHOTOMETRY, QUANTITY, SOURCE
 from astrocats.structures.struct import Source
 
-from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
+from blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2015PASP..127...67B"
 SOURCE_NAME = "Bentz & Katz 2015"

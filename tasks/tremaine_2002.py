@@ -12,7 +12,7 @@ from astrocats import utils
 # from astrocats.structures.quantity import QUANTITY
 # from astrocats.structures.photometry import PHOTOMETRY
 from astrocats.structures.struct import QUANTITY, PHOTOMETRY
-from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
+from blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2002ApJ...574..740T"
 SOURCE_NAME = "Tremaine+2002"
