@@ -5,7 +5,7 @@ from astrocats import utils
 from astrocats.structures import struct
 
 
-@struct.set_struct_schema("astrocats_entry", extensions=["astroschema_entry", "blackhole_entry"])
+@struct.set_struct_schema("astrocats_entry", extensions=["astroschema_entry", "blackholes_entry"])
 class Blackhole(struct.Entry):
     """Single entry in the Blackhole catalog, representing a single Blackhole.
     """

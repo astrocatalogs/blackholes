@@ -3,8 +3,9 @@
 import re
 
 from astrocats.structures.catalog import Catalog
-from .blackhole import Blackhole
-from .production import blackhole_director
+from blackholes import PATHS as _PATHS
+from blackholes.blackhole import Blackhole
+from blackholes.production import blackhole_director
 
 
 class BlackholeCatalog(Catalog):
@@ -12,6 +13,7 @@ class BlackholeCatalog(Catalog):
     """
 
     MODULE_NAME = "bh"
+    PATHS = _PATHS
 
     _NAME_REPLACEMENT_REGEX = [
         # 'IC ####'    --> 'IC####'
