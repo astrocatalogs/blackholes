@@ -4,7 +4,7 @@ import re
 
 from astrocats.structures.catalog import Catalog
 from blackholes import PATHS as _PATHS
-from blackholes.blackhole import Blackhole
+from blackholes.blackhole import Blackhole, BLACKHOLE
 from blackholes.production import blackhole_director
 
 
@@ -36,7 +36,7 @@ class BlackholeCatalog(Catalog):
     # This should be deprecated??
     RAISE_ERROR_ON_ADDITION_FAILURE = True
 
-    '''
+    # NOTE: FIX: Move this somewhere
     _EVENT_HTML_COLUMNS_CUSTOM = {
         BLACKHOLE.MASS: ["Mass [log(<em>M</em><sub>&#9737;</sub>)] [kind]", 1.1],
         BLACKHOLE.ACTIVITY: ["AGN Activity", 1.2],
@@ -48,7 +48,6 @@ class BlackholeCatalog(Catalog):
         BLACKHOLE.FWHM_MGII: ["FWHM Mg-II [km/s]", 107],
         BLACKHOLE.FWHM_CIV: ["FWHM C-IV [km/s]", 108],
     }
-    '''
 
     def __init__(self, args, log):
         """
