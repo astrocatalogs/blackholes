@@ -1,5 +1,5 @@
 {
-    "id": "bh_blackhole.json",
+    "id": "blackholes_entry.json",
 
     "definitions": {
         "NUMERIC": {
@@ -7,71 +7,71 @@
             "format": "numeric"
         },
         "QUANTITY": {
-            "$ref": "file:/Users/lzkelley/Research/catalogs/astroschema/schema/quantity.json"
+            "$ref": "file:astroschema_quantity.json"
         },
         "QUANTITY_LIST": {
             "type": "array",
             "minItems": 1,
             "items": {
-                "$ref": "#/definitions/QUANTITY"
+                "$ref": "blackholes_entry.json#/definitions/QUANTITY"
             }
         },
         "QUANTITY_LISTABLE": {
             "anyOf": [
-                {"$ref": "#/definitions/QUANTITY"},
-                {"$ref": "#/definitions/QUANTITY_LIST"}
+                {"$ref": "blackholes_entry.json#/definitions/QUANTITY"},
+                {"$ref": "blackholes_entry.json#/definitions/QUANTITY_LIST"}
             ]
         },
         "USE_TYPE": {
-            "$ref": "#/definitions/QUANTITY_LISTABLE"
+            "$ref": "blackholes_entry.json#/definitions/QUANTITY_LISTABLE"
         }
     },
 
     "properties": {
         "mass": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "distance": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_mass_bulge": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_vel_disp_bulge": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_luminosity_bulge": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_rad_eff_v": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_rad_eff_i": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_rad_eff_3p6": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_vel_disp": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_mass_to_light_ratio": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "fwhm_hbeta": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "fwhm_mgii": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "fwhm_civ": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "activity": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         },
         "galaxy_morphology": {
-            "$ref": "#/definitions/USE_TYPE"
+            "$ref": "blackholes_entry.json#/definitions/USE_TYPE"
         }
     }
 }
