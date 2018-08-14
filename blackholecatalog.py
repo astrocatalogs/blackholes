@@ -1,15 +1,10 @@
 """Blackhole specific catalog class.
 """
-import os
 import re
-import shutil
-import glob
 
-from astrocats.catalog.catalog import Catalog
-from astrocats.catalog import utils, schema
-from .blackhole import Blackhole, BLACKHOLE
+from astrocats.structures.catalog import Catalog
+from .blackhole import Blackhole
 from .production import blackhole_director
-from . import PATH_BH_SCHEMA
 
 
 class BlackholeCatalog(Catalog):
@@ -35,10 +30,11 @@ class BlackholeCatalog(Catalog):
     TRAVIS_QUERY_LIMIT = 10
     # Set behavior for when adding a quantity (photometry, source, etc) fails
     #    Options are 'IGNORE', 'WARN', 'RAISE' (see `utils.imports`)
-    ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
+    # ADDITION_FAILURE_BEHAVIOR = utils.ADD_FAIL_ACTION.RAISE
     # This should be deprecated??
     RAISE_ERROR_ON_ADDITION_FAILURE = True
 
+    '''
     _EVENT_HTML_COLUMNS_CUSTOM = {
         BLACKHOLE.MASS: ["Mass [log(<em>M</em><sub>&#9737;</sub>)] [kind]", 1.1],
         BLACKHOLE.ACTIVITY: ["AGN Activity", 1.2],
@@ -50,24 +46,16 @@ class BlackholeCatalog(Catalog):
         BLACKHOLE.FWHM_MGII: ["FWHM Mg-II [km/s]", 107],
         BLACKHOLE.FWHM_CIV: ["FWHM C-IV [km/s]", 108],
     }
-
-    STRUCTURES = [Blackhole]
-
-
-    class PATHS(Catalog.PATHS):
-        PATH_BASE = os.path.abspath(os.path.dirname(__file__))
+    '''
 
     def __init__(self, args, log):
         """
         """
         log.debug("BlackholeCatalog.__init__()")
-        # Initialize super `astrocats.catalog.catalog.Catalog` object
         super().__init__(args, log)
 
         self.proto = Blackhole
         self.Director = blackhole_director.Blackhole_Director
-
-        self.prep_schema()
         return
 
     def clone_repos(self):
@@ -88,12 +76,3 @@ class BlackholeCatalog(Catalog):
             name = re.sub(find, replace, name, flags=use_flags)
 
         return name
-
-    def prep_schema(self):
-
-        # print("\n\nBlackholeCatalog.prep_schema()\n\n")
-        # files = [struct._SCHEMA._filename for struct in self.STRUCTURES]
-        pattern = os.path.join(PATH_BH_SCHEMA, "*.json")
-        files = list(sorted(glob.glob(pattern)))
-        schema.main(add_files=files, add_structures=self.STRUCTURES)
-        return

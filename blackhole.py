@@ -1,32 +1,18 @@
 """
 """
-import os
 
-import pyastroschema as pas
-
-import astrocats
-from astrocats.catalog.struct import ENTRY, Entry
-from astrocats.catalog import struct, utils
-from astrocats import blackholes
+from astrocats import utils
+from astrocats.structures import struct
 
 
-PATH_BH_SCHEMA_INPUT = os.path.join(blackholes.PATH_BH_SCHEMA, "")
-# print("`PATH_BH_SCHEMA_INPUT` = '{}'".format(PATH_BH_SCHEMA_INPUT))
-
-path_my_blackhole_schema = os.path.join(PATH_BH_SCHEMA_INPUT, "bh_blackhole.json")
-path_entry = os.path.join(astrocats._PATH_SCHEMA, "input", "entry.json")
-path_astrocats_entry = os.path.join(astrocats._PATH_SCHEMA, "input", "astrocats_entry.json")
-
-
-@pas.struct.set_struct_schema(
-    path_entry, extensions=[path_astrocats_entry, path_my_blackhole_schema])
-class Blackhole(Entry):
+@struct.set_struct_schema("astrocats_entry", extensions=["astroschema_entry", "blackhole_entry"])
+class Blackhole(struct.Entry):
     """Single entry in the Blackhole catalog, representing a single Blackhole.
     """
 
-    def __init__(self, catalog, name, stub=False):
+    def __init__(self, catalog, name, **kwargs):
         name = catalog.clean_entry_name(name)
-        super().__init__(catalog, name, stub=stub)
+        super().__init__(catalog, name, **kwargs)
         return
 
     def add_self_source(self):
