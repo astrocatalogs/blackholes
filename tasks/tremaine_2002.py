@@ -8,10 +8,10 @@ import os
 import csv
 import tqdm
 
-from astrocats.catalog import utils
-# from astrocats.catalog.quantity import QUANTITY
-# from astrocats.catalog.photometry import PHOTOMETRY
-from astrocats.catalog.struct import QUANTITY, PHOTOMETRY
+from astrocats import utils
+# from astrocats.structures.quantity import QUANTITY
+# from astrocats.structures.photometry import PHOTOMETRY
+from astrocats.structures.struct import QUANTITY, PHOTOMETRY
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2002ApJ...574..740T"
@@ -140,7 +140,7 @@ def do_tremaine_2002(catalog):
     data_fname = os.path.join(task_dir, DATA_FILENAME)
     log.info("Input filename '{}'".format(data_fname))
     if not os.path.exists(data_fname):
-        utils.log_raise(log, "File not found '{}'".format(data_fname), IOError)
+        log.raise_error("File not found '{}'".format(data_fname), IOError)
 
     with tqdm.tqdm(desc=task_str, total=31, dynamic_ncols=True) as pbar:
 

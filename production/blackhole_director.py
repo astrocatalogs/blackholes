@@ -1,10 +1,11 @@
 """Blackhole Catalog: `Director` subclass
 """
 
-from astrocats.catalog.production import director, html_pro
-from astrocats.catalog.utils import dict_to_pretty_string
-from astrocats.catalog.struct import QUANTITY
-from .. blackhole import BLACKHOLE
+# from astrocats import utils
+from astrocats.production import director, html_pro
+from astrocats.structures.struct import QUANTITY
+
+from blackholes.blackhole import BLACKHOLE
 
 
 class Blackhole_Director(director.Director):
@@ -19,7 +20,7 @@ class Blackhole_Director(director.Director):
         return
 
     # def update(self, fname, event_name, event_data):
-    #     # print(dict_to_pretty_string(event_data))
+    #     # print(utils.dict_to_pretty_string(event_data))
     #     super().update(fname, event_name, event_data)
 
 

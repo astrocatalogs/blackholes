@@ -12,8 +12,8 @@ import bs4
 import tqdm
 import sys
 
-from astrocats.catalog import utils
-from astrocats.catalog.struct import SOURCE, QUANTITY, PHOTOMETRY
+from astrocats import utils
+from astrocats.structures.struct import SOURCE, QUANTITY, PHOTOMETRY
 
 from astrocats.blackholes.blackhole import BLACKHOLE, GALAXY_MORPHS, BH_MASS_METHODS
 

@@ -25,10 +25,9 @@ import os
 import csv
 import tqdm
 
-from astrocats.catalog import utils
-from astrocats.catalog.quantity import QUANTITY
-from astrocats.catalog.photometry import PHOTOMETRY
-# from astrocats.catalog.utils import dict_to_pretty_string
+from astrocats import utils
+from astrocats.structures.quantity import QUANTITY
+from astrocats.structures.photometry import PHOTOMETRY
 
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
@@ -68,7 +67,7 @@ def do_wevers_2017(catalog=None):
     data_fname = os.path.join(task_dir, DATA_FILENAME)
     log.info("Input filename '{}'".format(data_fname))
     if not os.path.exists(data_fname):
-        utils.log_raise(log, "File not found '{}'".format(data_fname), IOError)
+        log.raise_error("File not found '{}'".format(data_fname), IOError)
 
     with tqdm.tqdm(desc=task_str, total=EXPECTED_TOTAL, dynamic_ncols=True) as pbar:
 
@@ -209,7 +208,7 @@ def _add_entry_for_data_line(catalog, line):
             PHOTOMETRY.U_TIME: 'MJD',
         }
         if not catalog.entries[name].add_photometry(**photo_kwargs):
-            utils.log_raise(log, "Adding photometry failed for '{}'\n:{}".format(
+            log.raise_error("Adding photometry failed for '{}'\n:{}".format(
                 name, photo_kwargs))
 
     # [6] Luminosity Bolometric
@@ -226,7 +225,7 @@ def _add_entry_for_data_line(catalog, line):
             PHOTOMETRY.U_TIME: 'MJD',
         }
         if not catalog.entries[name].add_photometry(**photo_kwargs):
-            utils.log_raise(log, "Adding photometry failed for '{}'\n:{}".format(
+            log.raise_error("Adding photometry failed for '{}'\n:{}".format(
                 name, photo_kwargs))
 
     # [14-22] FWHM, Mass, and Monochromatic Luminosities by line
@@ -260,7 +259,7 @@ def _add_entry_for_data_line(catalog, line):
                 PHOTOMETRY.U_TIME: 'MJD',
             }
             if not catalog.entries[name].add_photometry(**photo_kwargs):
-                utils.log_raise(log, "Adding photometry failed for '{}' ({}) \n:{}".format(
+                log.raise_error("Adding photometry failed for '{}' ({}) \n:{}".format(
                     name, nn, photo_kwargs))
 
         # Mass from this Line

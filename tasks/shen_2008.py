@@ -61,8 +61,8 @@ import os
 import csv
 import tqdm
 
-from astrocats.catalog import utils
-from astrocats.catalog.struct import QUANTITY, PHOTOMETRY
+from astrocats import utils
+from astrocats.structures.struct import QUANTITY, PHOTOMETRY
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
 SOURCE_BIBCODE = "2008ApJ...680..169S"

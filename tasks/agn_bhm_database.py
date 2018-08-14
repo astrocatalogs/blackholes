@@ -14,9 +14,9 @@ import re
 from bs4 import BeautifulSoup
 import numpy as np
 
-from astrocats.catalog import utils
-from astrocats.catalog.struct import PHOTOMETRY, QUANTITY, SOURCE
-from astrocats.catalog.struct import Source
+from astrocats import utils
+from astrocats.structures.struct import PHOTOMETRY, QUANTITY, SOURCE
+from astrocats.structures.struct import Source
 
 from astrocats.blackholes.blackhole import BLACKHOLE, BH_MASS_METHODS
 
