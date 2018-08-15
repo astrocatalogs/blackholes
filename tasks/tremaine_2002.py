@@ -6,7 +6,7 @@ Table 1, manually copied to file 'blackholes/input/internal/tremaine+2002.txt'.
 """
 import os
 import csv
-import tqdm
+# import tqdm
 
 from astrocats import utils
 # from astrocats.structures.quantity import QUANTITY
@@ -136,13 +136,15 @@ def do_tremaine_2002(catalog):
 
     # Go through each element of the tables
     num = 0
+    EXPECTED_TOTAL = 31
 
     data_fname = os.path.join(task_dir, DATA_FILENAME)
     log.info("Input filename '{}'".format(data_fname))
     if not os.path.exists(data_fname):
         log.raise_error("File not found '{}'".format(data_fname), IOError)
 
-    with tqdm.tqdm(desc=task_str, total=31, dynamic_ncols=True) as pbar:
+    # with tqdm.tqdm(desc=task_str, total=31, dynamic_ncols=True) as pbar:
+    with utils.pbar(EXPECTED_TOTAL, desc=task_str, total=EXPECTED_TOTAL) as pbar:
 
         with open(data_fname, 'r') as data:
             spamreader = csv.reader(data, delimiter=' ')
@@ -156,7 +158,7 @@ def do_tremaine_2002(catalog):
                     num += 1
 
                     if catalog.args.travis and (num > catalog.TRAVIS_QUERY_LIMIT):
-                        log.warning("Exiting on travis limit")
+                        log.info("Exiting on travis limit")
                         break
 
                 pbar.update(1)

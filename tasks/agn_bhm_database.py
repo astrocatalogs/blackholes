@@ -85,7 +85,7 @@ def do_agn_bhm_database(catalog):
                 entries += 1
 
                 if catalog.args.travis and (entries > catalog.TRAVIS_QUERY_LIMIT):
-                    log.warning("Exiting on travis limit")
+                    log.info("Exiting on travis limit")
                     break
 
     return True

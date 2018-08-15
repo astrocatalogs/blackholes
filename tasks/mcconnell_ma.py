@@ -9,7 +9,7 @@ Data exists in a single online table.  That data is cached locally in
 """
 import re
 import bs4
-import tqdm
+# import tqdm
 import sys
 
 from astrocats import utils
@@ -96,7 +96,8 @@ def parse_old_webpage(catalog, data):
     table_entries = 0
     added = 0
 
-    with tqdm.tqdm(desc=task_str, total=EXPECTED_ENTRIES, dynamic_ncols=True) as pbar:
+    # with tqdm.tqdm(desc=task_str, total=EXPECTED_ENTRIES, dynamic_ncols=True) as pbar:
+    with utils.pbar(EXPECTED_ENTRIES, task_str, total=EXPECTED_ENTRIES) as pbar:
 
         while num < num_div_lines:
             div = div_lines[num]
@@ -112,14 +113,13 @@ def parse_old_webpage(catalog, data):
                     added += 1
 
                     if catalog.args.travis and (added > catalog.TRAVIS_QUERY_LIMIT):
-                        log.warning("Exiting on travis limit")
+                        log.info("Exiting on travis limit")
                         break
 
             num += 1
-            # pbar.update(1)
 
     log.info("Added {} ({} table) entries".format(added, table_entries))
-    if added != EXPECTED_ENTRIES:
+    if (added != EXPECTED_ENTRIES) and (not catalog.args.travis):
         log.warning("Found {} entries, expected {}!".format(added, EXPECTED_ENTRIES))
     return
 

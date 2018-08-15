@@ -91,7 +91,7 @@ def do_wevers_2017(catalog=None):
                         catalog.journal_entries()
 
                     if catalog.args.travis and (num > catalog.TRAVIS_QUERY_LIMIT):
-                        log.warning("Exiting on travis limit")
+                        log.info("Exiting on travis limit")
                         break
 
                 pbar.update(1)

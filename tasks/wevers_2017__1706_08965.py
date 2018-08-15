@@ -36,7 +36,7 @@ SOURCE_NAME = "Shen+2008"
 SOURCE_URL = "http://adsabs.harvard.edu/abs/2008ApJ...680..169S"
 
 DATA_FILENAME = "wevers_1706.08965_table-3.tex"
-# EXPECTED_TOTAL = 77429
+EXPECTED_TOTAL = 77429
 # Note that the VizieR table has 3 additional columns at the end relative to Table 1 descriptions
 # NUM_COLUMNS = 30
 JOURNAL_INTERNAL = 1000
@@ -105,7 +105,7 @@ def do_wevers_2017(catalog=None):
                         catalog.journal_entries()
 
                     if catalog.args.travis and (num > catalog.TRAVIS_QUERY_LIMIT):
-                        log.warning("Exiting on travis limit")
+                        log.info("Exiting on travis limit")
                         break
 
                 pbar.update(1)
